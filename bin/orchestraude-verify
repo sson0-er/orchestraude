@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Deterministic gate run before any LLM review. The project owns the
+# definition (scripts/verify.sh); this wrapper only captures output and
+# propagates the exit code so the orchestrator can branch on it.
+set -u
+
+usage() { echo "Usage: orchestraude-verify --log FILE [--cwd DIR]" >&2; exit 2; }
+
+log="" cwd="$PWD"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --log) [ $# -ge 2 ] || usage; log="$2"; shift 2 ;;
+    --cwd) [ $# -ge 2 ] || usage; cwd="$2"; shift 2 ;;
+    *) usage ;;
+  esac
+done
+[ -n "$log" ] || usage
+
+# Resolve log path to absolute before changing directory
+if [ "${log#/}" = "$log" ]; then
+  log="$(pwd)/$log"
+fi
+
+cmd="${ORCHESTRAUDE_VERIFY_CMD:-scripts/verify.sh}"
+cd "$cwd" || exit 2
+
+# Create log directory before any exit path to ensure error messages are captured
+mkdir -p "$(dirname "$log")"
+
+if [ ! -x "$cmd" ]; then
+  echo "verify script not found or not executable: $cmd (cwd: $cwd)" | tee "$log" >&2
+  exit 3
+fi
+"$cmd" >"$log" 2>&1
+status=$?
+echo "verify exit: $status" >> "$log"
+exit $status

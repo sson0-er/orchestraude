@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "properties": {
+    "summary": {"type": "string"},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "severity": {"type": "string", "enum": ["high", "medium", "low"]},
+          "title": {"type": "string"},
+          "location": {"type": "string"},
+          "detail": {"type": "string"},
+          "evidence": {"type": "string"}
+        },
+        "required": ["severity", "title", "location", "detail", "evidence"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["summary", "findings"],
+  "additionalProperties": false
+}

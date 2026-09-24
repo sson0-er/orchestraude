@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "properties": {
+    "status": {"type": "string", "enum": ["done", "blocked"]},
+    "summary": {"type": "string"},
+    "changed_files": {"type": "array", "items": {"type": "string"}},
+    "tests_added": {"type": "array", "items": {"type": "string"}},
+    "dod_check": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item": {"type": "string"},
+          "met": {"type": "boolean"},
+          "note": {"type": "string"}
+        },
+        "required": ["item", "met", "note"],
+        "additionalProperties": false
+      }
+    },
+    "open_questions": {"type": "array", "items": {"type": "string"}}
+  },
+  "required": ["status", "summary", "changed_files", "tests_added", "dod_check", "open_questions"],
+  "additionalProperties": false
+}

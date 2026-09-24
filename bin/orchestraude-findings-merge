@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# Merges per-reviewer findings JSON into one Markdown so the implementer
+# and the orchestrator read a single document. --fail-on turns the merged
+# result into a gate decision without another LLM call.
+set -u
+
+usage() {
+  echo "Usage: orchestraude-findings-merge --out FILE [--fail-on high|medium|low] <findings.json>..." >&2
+  exit 2
+}
+
+out="" fail_on="" files=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --out) [ $# -ge 2 ] || usage; out="$2"; shift 2 ;;
+    --fail-on) [ $# -ge 2 ] || usage; fail_on="$2"; shift 2 ;;
+    -*) usage ;;
+    *) files="$files
+$1"; shift ;;
+  esac
+done
+[ -n "$out" ] && [ -n "$files" ] || usage
+case "$fail_on" in ""|high|medium|low) ;; *) usage ;; esac
+
+# Tag each finding with its reviewer role, taken from "<task>.findings.<role>.json".
+tagged="$(mktemp "${TMPDIR:-/tmp}/orchestraude-findings.XXXXXX")"
+# Clean temp file on every exit path (success, error, or signal).
+trap 'rm -f "$tagged"' EXIT
+: > "$tagged"
+echo "$files" | while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  jq -e '.findings | type == "array" and all(.[]; type == "object" and (.severity | IN("high","medium","low")))' "$f" >/dev/null 2>&1 || { echo "invalid findings json (findings must be an array of objects with severity high|medium|low): $f" >&2; exit 2; }
+  base="$(basename "$f" .json)"
+  case "$base" in
+    *.findings.*) role="${base##*.findings.}" ;;
+    *) role="$base" ;;
+  esac
+  jq -c --arg role "$role" '.findings[] | . + {role: $role}' "$f" >> "$tagged" || exit 2
+done || exit 2
+
+count() { jq -s --arg s "$1" '[.[] | select(.severity == $s)] | length' "$tagged"; }
+h="$(count high)"; m="$(count medium)"; l="$(count low)"
+
+section() {
+  echo "## $1"
+  echo
+  jq -r --arg s "$1" '
+    select(.severity == $s)
+    | "- [\(.role)] \(.title)\n  - location: \(.location)\n  - detail: \(.detail)\n  - evidence: \(if .evidence == "" then "(none)" else .evidence end)"
+  ' "$tagged"
+  echo
+}
+
+mkdir -p "$(dirname "$out")"
+{
+  echo "# Review findings"
+  echo
+  echo "high: $h, medium: $m, low: $l"
+  echo
+  section high
+  section medium
+  section low
+} > "$out"
+
+case "$fail_on" in
+  high)   [ "$h" -eq 0 ] ;;
+  medium) [ "$((h + m))" -eq 0 ] ;;
+  low)    [ "$((h + m + l))" -eq 0 ] ;;
+  *)      true ;;
+esac
