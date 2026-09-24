@@ -22,6 +22,12 @@ done
 assert_file_exists "$ROOT/skills/record-evidence/SKILL.md" "record-evidence skill"
 assert_file_exists "$ROOT/skills/define-requirements/SKILL.md" "define-requirements skill"
 assert_file_exists "$ROOT/skills/orchestrate/SKILL.md" "orchestrate skill"
+assert_file_exists "$ROOT/skills/review-rules/SKILL.md" "review-rules skill"
+# The severity calibration lives only in review-rules; a reviewer that does not
+# preload it would review without any calibration.
+for r in quality security spec tests; do
+  assert_eq "[review-rules]" "$(field "$ROOT/agents/reviewer-$r.md" skills)" "reviewer-$r preloads review-rules"
+done
 
 # The Opus/Sonnet split is the point of this plugin, so each role's model and
 # effort is pinned here: a change must be deliberate, not a stray edit.

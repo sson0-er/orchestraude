@@ -53,7 +53,7 @@ Each task is implemented by one `implementer` subagent, and every fix round cont
 | `bin/orchestraude-init` | Creates the `docs/orchestraude/` layout |
 | `bin/orchestraude-snapshot` | Snapshots the working tree as a commit object so later review rounds diff only the fix |
 | `agents/` | researcher, designer, design-reviewer, planner, implementer, reviewer-{quality,security,spec,tests}, triage, doc-writer |
-| `skills/` | orchestrate (full flow), define-requirements (interactive), record-evidence (recording rules) |
+| `skills/` | orchestrate (full flow), define-requirements (interactive), record-evidence (recording rules), review-rules (findings shape, severity calibration and later rounds shared by the four reviewers) |
 | `templates/` | Artifact templates |
 | `schemas/` | JSON Schemas for findings and reports |
 | `install.sh` | Copies the runtime files into the skills directory (see Install) |
