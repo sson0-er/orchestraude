@@ -1,6 +1,6 @@
 # orchestraude
 
-A Claude Code plugin that makes Claude Code the orchestrator and delegates every step to role-specific Claude subagents. Research, design, design review, planning, implementation and review all run inside Claude Code; no external CLI is involved.
+A Claude Code plugin that makes Claude Code the orchestrator and delegates every step to role-specific Claude subagents, split between Opus 5.5 and Sonnet 5. Research, design, design review, planning, implementation and review all run inside Claude Code; no external CLI is involved.
 
 ## Prerequisites
 
@@ -60,7 +60,21 @@ Each task is implemented by one `implementer` subagent, and every fix round cont
 
 Artifacts live under `docs/orchestraude/` in the target project. Evidence (recorded external facts) and decisions (recorded design choices) accumulate across features.
 
-Every agent runs on `claude-sonnet-5`; the reasoning effort per role is set in each agent's frontmatter.
+## Models
+
+Roles whose mistakes carry into every later task run on Opus; high-volume roles that follow a fixed procedure run on Sonnet. Spec and security review use a different model from the implementer, so the reviewer is less likely to share the implementer's blind spots. The orchestrator itself runs on whatever model the session uses.
+
+| Agent | Model | Effort |
+|---|---|---|
+| designer, design-reviewer, planner | `claude-opus-5-5` | high |
+| reviewer-spec, reviewer-security | `claude-opus-5-5` | high |
+| triage | `claude-opus-5-5` | medium |
+| implementer | `claude-sonnet-5` | xhigh |
+| reviewer-quality | `claude-sonnet-5` | high |
+| researcher, reviewer-tests | `claude-sonnet-5` | medium |
+| doc-writer | `claude-sonnet-5` | low |
+
+Each agent sets its model and effort in its frontmatter; `tests/test_frontmatter.sh` pins this table.
 
 ## Environment variables
 
