@@ -1,7 +1,7 @@
 ---
 name: designer
 description: Writes the design document from the requirements and research, recording design choices as decisions. Also used in revision mode to address design-review findings.
-model: claude-sonnet-5
+model: claude-opus-5-5
 effort: high
 tools: Read, Grep, Glob, Bash, Write, Edit, WebFetch
 skills: [record-evidence]

@@ -1,7 +1,7 @@
 ---
 name: planner
 description: Turns the approved design into an implementation plan and task definitions (scope, instructions, Definition of Done, dependencies). Does not implement.
-model: claude-sonnet-5
+model: claude-opus-5-5
 effort: high
 tools: Read, Grep, Glob, Write, Edit
 ---

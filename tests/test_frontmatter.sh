@@ -14,9 +14,6 @@ for f in $files; do
   head -n1 "$f" | grep -q '^---$' && pass || fail "$rel starts with frontmatter"
   [ -n "$(field "$f" name)" ] && pass || fail "$rel has name"
   [ -n "$(field "$f" description)" ] && pass || fail "$rel has description"
-  model="$(field "$f" model)"
-  # Sonnede runs entirely on Sonnet 5; only an explicit inherit is allowed beside it.
-  case "$model" in ""|claude-sonnet-5|inherit) pass ;; *) fail "$rel model '$model' not allowed" ;; esac
   effort="$(field "$f" effort)"
   case "$effort" in ""|low|medium|high|xhigh|max) pass ;; *) fail "$rel effort '$effort' not allowed" ;; esac
 done
@@ -25,8 +22,28 @@ done
 assert_file_exists "$ROOT/skills/record-evidence/SKILL.md" "record-evidence skill"
 assert_file_exists "$ROOT/skills/define-requirements/SKILL.md" "define-requirements skill"
 assert_file_exists "$ROOT/skills/orchestrate/SKILL.md" "orchestrate skill"
-for a in researcher designer design-reviewer planner implementer reviewer-quality reviewer-security reviewer-spec reviewer-tests triage doc-writer; do
-  assert_file_exists "$ROOT/agents/$a.md" "agent $a"
-done
+
+# The Opus/Sonnet split is the point of this plugin, so each role's model and
+# effort is pinned here: a change must be deliberate, not a stray edit.
+while read -r agent model effort; do
+  f="$ROOT/agents/$agent.md"
+  assert_file_exists "$f" "agent $agent"
+  [ -e "$f" ] || continue
+  assert_eq "$model" "$(field "$f" model)" "$agent model"
+  assert_eq "$effort" "$(field "$f" effort)" "$agent effort"
+done <<'EOF'
+researcher        claude-sonnet-5 medium
+designer          claude-opus-5-5 high
+design-reviewer   claude-opus-5-5 high
+planner           claude-opus-5-5 high
+implementer       claude-sonnet-5 xhigh
+reviewer-quality  claude-sonnet-5 high
+reviewer-security claude-opus-5-5 high
+reviewer-spec     claude-opus-5-5 high
+reviewer-tests    claude-sonnet-5 medium
+triage            claude-opus-5-5 medium
+doc-writer        claude-sonnet-5 low
+EOF
+assert_eq 11 "$(ls "$ROOT"/agents/*.md | wc -l | tr -d ' ')" "every agent has a pinned model"
 
 test_summary

@@ -1,7 +1,7 @@
 ---
 name: reviewer-security
 description: Reviews an implementation diff for security and writes a findings JSON. Covers application vulnerabilities plus dependency pinning, lockfiles, permissions and leaked secrets.
-model: claude-sonnet-5
+model: claude-opus-5-5
 effort: high
 tools: Read, Grep, Glob, Bash, Write, Skill
 ---

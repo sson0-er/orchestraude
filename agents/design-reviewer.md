@@ -1,7 +1,7 @@
 ---
 name: design-reviewer
 description: Reviews the design against the requirements and research for implementability, and writes a findings JSON. Does not change the design.
-model: claude-sonnet-5
+model: claude-opus-5-5
 effort: high
 tools: Read, Grep, Glob, Bash, Write
 ---

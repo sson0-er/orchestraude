@@ -1,7 +1,7 @@
 ---
 name: triage
 description: Classifies the merged low findings of a feature into fix / decision / accept / convention buckets and proposes follow-up tasks and project conventions. Read-only except for its one output file.
-model: claude-sonnet-5
+model: claude-opus-5-5
 effort: medium
 tools: Read, Grep, Glob, Bash, Write
 ---

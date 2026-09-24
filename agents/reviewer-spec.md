@@ -1,7 +1,7 @@
 ---
 name: reviewer-spec
 description: Checks that the implementation matches the design and the task's Definition of Done, and writes a findings JSON. Does not review code quality.
-model: claude-sonnet-5
+model: claude-opus-5-5
 effort: high
 tools: Read, Grep, Glob, Bash, Write
 ---
