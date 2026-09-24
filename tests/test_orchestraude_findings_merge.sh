@@ -67,6 +67,30 @@ EOF
 assert_exit 2 $? "non-object findings element exits 2"
 [ ! -e "$TMP/m9.md" ] && pass "output file not written on non-object element" || fail "output file should not exist after non-object element"
 
+# A finding missing a required string field would otherwise render as "null".
+cat > "$TMP/null-title.json" <<'EOF'
+{"summary":"x","findings":[
+ {"severity":"low","title":null,"location":"l","detail":"d","evidence":""}]}
+EOF
+"$ROOT/bin/orchestraude-findings-merge" --out "$TMP/m10.md" "$TMP/null-title.json" 2>/dev/null
+assert_exit 2 $? "null title exits 2"
+cat > "$TMP/no-evidence.json" <<'EOF'
+{"summary":"x","findings":[
+ {"severity":"low","title":"t","location":"l","detail":"d"}]}
+EOF
+"$ROOT/bin/orchestraude-findings-merge" --out "$TMP/m11.md" "$TMP/no-evidence.json" 2>/dev/null
+assert_exit 2 $? "missing evidence field exits 2"
+cat > "$TMP/no-summary.json" <<'EOF'
+{"findings":[]}
+EOF
+"$ROOT/bin/orchestraude-findings-merge" --out "$TMP/m12.md" "$TMP/no-summary.json" 2>/dev/null
+assert_exit 2 $? "missing summary exits 2"
+
+# A reviewer that never wrote its file is reported as missing, not as invalid JSON.
+err="$("$ROOT/bin/orchestraude-findings-merge" --out "$TMP/m13.md" "$TMP/absent.findings.spec.json" 2>&1)"
+assert_exit 2 $? "missing findings file exits 2"
+assert_contains "$err" "findings file not found: $TMP/absent.findings.spec.json" "missing file named in error"
+
 # Test: temp file cleanup on error (no leak)
 before="$(ls "${TMPDIR:-/tmp}" 2>/dev/null | grep -c '^orchestraude-findings\.' || echo 0)"
 echo 'invalid json' > "$TMP/leak.json"

@@ -29,7 +29,17 @@ trap 'rm -f "$tagged"' EXIT
 : > "$tagged"
 echo "$files" | while IFS= read -r f; do
   [ -n "$f" ] || continue
-  jq -e '.findings | type == "array" and all(.[]; type == "object" and (.severity | IN("high","medium","low")))' "$f" >/dev/null 2>&1 || { echo "invalid findings json (findings must be an array of objects with severity high|medium|low): $f" >&2; exit 2; }
+  [ -f "$f" ] || { echo "findings file not found: $f" >&2; exit 2; }
+  # Mirrors schemas/findings.schema.json: a missing or null field would
+  # otherwise be rendered as "null" and pass the gate unnoticed.
+  jq -e '
+    type == "object"
+    and (.summary | type == "string")
+    and (.findings | type == "array" and all(.[];
+          type == "object"
+          and (.severity | IN("high","medium","low"))
+          and all(.title, .location, .detail, .evidence; type == "string")))
+  ' "$f" >/dev/null 2>&1 || { echo "invalid findings json (see schemas/findings.schema.json): $f" >&2; exit 2; }
   base="$(basename "$f" .json)"
   case "$base" in
     *.findings.*) role="${base##*.findings.}" ;;
