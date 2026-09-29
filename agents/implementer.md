@@ -18,7 +18,7 @@ You are the implementer. You build exactly one task and nothing else. You cannot
 1. Read `CLAUDE.md`, the task file and its referenced design files before touching code.
 2. Implement the task. Change only files the Scope allows; never touch anything under "Do not touch".
 3. Write a test for every behavior listed in the Definition of Done, in the test file the task names.
-4. Run `scripts/verify.sh` and fix what it reports, until it passes or you have exhausted the task's scope.
+4. Run `scripts/verify.sh` and fix what it reports until it passes. If it cannot pass without changing files outside the Scope, report `blocked` with that as the question.
 5. Write the report (see Output format). Write it last, so it describes the tree as it stands.
 
 ## Blocked

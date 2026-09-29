@@ -1,6 +1,6 @@
 ---
 name: record-evidence
-description: How to record external facts (docs, command output, codebase findings) as evidence and design choices as decisions. Used by the researcher, designer and reviewer agents.
+description: How to record external facts (docs, command output, codebase findings) as evidence and design choices as decisions. Used by the researcher and designer agents.
 user-invocable: false
 ---
 

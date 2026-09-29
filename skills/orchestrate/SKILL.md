@@ -19,7 +19,7 @@ You are the orchestrator (parent). You never research, design, implement or revi
 
 Talk to the user in the user's language. All artifacts are written in English.
 
-Do not read the children's deliverables. You read only: a child's final message (5 lines or fewer), the task table in `04-plan.md`, the counts line of `*.findings.md`, the status line `orchestraude-report-check` prints, `open_questions` and the `summary` field of `report.json`, the frontmatter and History section of `tasks/<task>.md` (which you edit), `$T.round-*.snapshot` (one line each), `05-low-findings-triage.md` in full (it is a summary artifact), and `docs/orchestraude/review-policy.md` (which you append to). The history file is for reviewers, not for you. For evidence you read `INDEX.md` only.
+Do not read the children's deliverables. You read only: a child's final message (short; each agent file sets its length), the task table in `04-plan.md`, the counts line of `*.findings.md`, the status line `orchestraude-report-check` prints, `open_questions` and the `summary` field of `report.json`, the frontmatter and History section of `tasks/<task>.md` (which you edit), `$T.base.snapshot` and `$T.round-*.snapshot` (one line each), `05-low-findings-triage.md` in full (it is a summary artifact), and `docs/orchestraude/review-policy.md` (which you append to). The history file is for reviewers, not for you. For evidence you read `INDEX.md` only.
 
 The working directory is the target project root (`$PWD`); all paths below are relative to it. The plugin's `bin/` is on PATH, so `orchestraude-*` commands run as is. Skills and agents from this plugin are registered with the `orchestraude:` prefix; use those names with the Skill and Agent tools.
 
@@ -70,9 +70,11 @@ After every implementer run (the initial one and every fix), before anything els
 orchestraude-report-check $T.report.json
 ```
 
-Exit 2 means the report is missing or malformed: treat it exactly like a failed implementer run (see Escalation rules). Otherwise the command prints `status: <status> open_questions: <n>`. If `status` is `blocked`, follow the blocked procedure in 4.1. The "already 5" stop check in 4.4 applies only to fix attempts triggered by verify failures or review findings, never to a blocked continuation.
+Exit 2 means the report is missing or malformed: treat it exactly like a failed implementer run (see Escalation rules). Otherwise the command prints `status: <status> open_questions: <n>`. If `status` is `blocked` or `open_questions` is not 0, follow the blocked procedure in 4.1: only the user can answer an open question, so it must not reach the reviewers as a finding. The "already 5" stop check in 4.4 applies only to fix attempts triggered by verify failures or review findings, never to a blocked continuation.
 
 ### 4.1 Implement
+
+Unless `$T.base.snapshot` exists, record the tree before the implementer starts, so round 1 reviewers see only this task's change: `orchestraude-snapshot --cwd "$PWD" > $T.base.snapshot`.
 
 Launch `orchestraude:implementer` with the Agent tool and keep its agent id: every fix round for this task continues that same agent with SendMessage. Prompt:
 
@@ -87,10 +89,10 @@ with the question in open_questions instead of guessing.
 Write the JSON report to docs/orchestraude/$slug/tasks/<task>.report.json.
 ```
 
-If `status` in `report.json` is `blocked`, show `open_questions` to the user and collect answers. Then continue the implementer (4.4) with:
+If the report is `blocked` or has open questions, show `open_questions` to the user and collect answers. Then continue the implementer (4.4) with:
 
 ```
-You reported status "blocked" with open questions. Here are the answers:
+You reported open questions. Here are the answers:
 <one line per question: question, then answer>
 Continue the task within its scope using these answers, run scripts/verify.sh, and rewrite the JSON report.
 ```
@@ -118,7 +120,7 @@ Fix the cause within the task's scope, re-run scripts/verify.sh, and rewrite the
 
 Let N be the round number: 1 plus the number of existing `$T.round-*.snapshot` files. Then record the tree the reviewers are about to see: `orchestraude-snapshot --cwd "$PWD" > $T.round-N.snapshot`. (Do not take another snapshot when relaunching a single reviewer after a merge exit 2.)
 
-Launch all four reviewers with the Agent tool **in the same message**. Prompt for each: "slug is $slug, task-id is <task>, round is N. Write your findings JSON." When N >= 2, append: "Previous findings: $T.findings.history.md. Snapshots: previous round <contents of $T.round-(N-1).snapshot>, current <contents of $T.round-N.snapshot>."
+Launch all four reviewers with the Agent tool **in the same message**. Prompt for each: "slug is $slug, task-id is <task>, round is N. Snapshots: previous <contents of $T.base.snapshot when N is 1, else $T.round-(N-1).snapshot>, current <contents of $T.round-N.snapshot>. Write your findings JSON." When N >= 2, append: "Previous findings: $T.findings.history.md."
 
 - `orchestraude:reviewer-quality` → `$T.findings.quality.json`
 - `orchestraude:reviewer-security` → `$T.findings.security.json`

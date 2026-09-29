@@ -2,9 +2,9 @@
 # Captures the working tree as a commit object and prints its SHA without
 # touching HEAD, the index or the tree. The private index is seeded from
 # HEAD (so force-added, ignored-but-tracked files are kept) and then only
-# changed paths are rehashed. Reviewers diff snapshots to see only what a
-# fix round changed. Unreferenced objects live until git gc prunes them
-# (default two weeks), long enough for a task loop.
+# changed paths are rehashed. Reviewers diff snapshots to see only what the
+# task (round 1) or a fix round changed. Unreferenced objects live until
+# git gc prunes them (default two weeks), long enough for a task loop.
 set -eu
 usage() { echo "Usage: orchestraude-snapshot [--cwd DIR]" >&2; exit 2; }
 cwd="$PWD"

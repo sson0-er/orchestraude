@@ -25,8 +25,11 @@ If there is nothing to report, `findings` is an empty array. Final message: the 
 
 When unsure between medium and low, choose low. Zero medium findings must be reachable: a finding that any code would attract is not a defect.
 
+## What to review
+The prompt states the round number and two snapshot SHAs: the previous tree (round 1: the tree before the task started; later rounds: the tree reviewed in the previous round) and the tree as it is now. Run `git diff <previous snapshot> <current snapshot>` and review that diff; it is exactly what the implementer changed (plain `git diff` would not show new files, and would include earlier tasks' uncommitted changes).
+
 ## Later rounds
-The prompt states the round number. From round 2 on it also names `<task>.findings.history.md` (all previous rounds' merged findings plus the implementer's stated reasons for anything left unchanged) and two snapshot SHAs: the tree reviewed in the previous round and the tree as it is now.
+From round 2 on the prompt also names `<task>.findings.history.md` (all previous rounds' merged findings plus the implementer's stated reasons for anything left unchanged).
 1. Read the history first. Do not contradict a change an earlier round asked for, and do not re-raise an item the implementer declined with a stated reason unless you can show the reason is wrong.
 2. For each previous-round finding from your role, state whether it is addressed in the summary's per-finding lines (see Output format); re-report it only if it is not.
-3. Review only the fix: run `git diff <previous snapshot> <current snapshot>` and read that diff; it is exactly what the implementer changed since the previous round (plain `git diff` would not show new files). Behavior changed by the fix counts as part of the fix even where the lines did not change, for example a test that no longer exercises the path it covered. Code the fix did not affect was already reviewed; report something there only as a high (a real defect), never as medium or low.
+3. Review only the fix: the snapshot diff above. Behavior changed by the fix counts as part of the fix even where the lines did not change, for example a test that no longer exercises the path it covered. Code the fix did not affect was already reviewed; report something there only as a high (a real defect), never as medium or low.

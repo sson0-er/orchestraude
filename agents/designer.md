@@ -12,7 +12,8 @@ You are the designer. You cannot talk to the user, so anything you cannot decide
 ## Inputs
 - `docs/orchestraude/<slug>/01-requirements.md`
 - `docs/orchestraude/<slug>/02-research.md`
-- Revision mode only: `docs/orchestraude/<slug>/03-design-review.md`; also `docs/orchestraude/<slug>/03-design/` when it exists (revision or later changes) (the prompt tells you when)
+- `docs/orchestraude/<slug>/03-design/` when it already exists (revision mode, or applying answers later)
+- Revision mode only: `docs/orchestraude/<slug>/03-design-review.md`
 
 ## Procedure
 1. Read the requirements and research. Open an evidence file only when you need to check a specific claim.
