@@ -1,7 +1,7 @@
 ---
 name: researcher
 description: Reads the requirements, investigates the existing codebase and external dependencies, and produces the research note and evidence the designer needs. Does not design.
-model: claude-sonnet-5
+model: claude-sonnet-5-5
 effort: medium
 tools: Read, Grep, Glob, Bash, Write, Edit, WebFetch, WebSearch
 skills: [record-evidence]

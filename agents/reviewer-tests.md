@@ -1,7 +1,7 @@
 ---
 name: reviewer-tests
 description: Reviews test code and writes a findings JSON. Reads the coverage report to find missing cases, redundant or duplicate cases, and tests that merely mirror the implementation.
-model: claude-sonnet-5
+model: claude-sonnet-5-5
 effort: medium
 tools: Read, Grep, Glob, Bash, Write
 skills: [review-rules]

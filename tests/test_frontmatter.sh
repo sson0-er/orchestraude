@@ -38,17 +38,17 @@ while read -r agent model effort; do
   assert_eq "$model" "$(field "$f" model)" "$agent model"
   assert_eq "$effort" "$(field "$f" effort)" "$agent effort"
 done <<'EOF'
-researcher        claude-sonnet-5 medium
+researcher        claude-sonnet-5-5 medium
 designer          claude-opus-5-5 high
 design-reviewer   claude-opus-5-5 high
 planner           claude-opus-5-5 high
-implementer       claude-sonnet-5 xhigh
-reviewer-quality  claude-sonnet-5 high
+implementer       claude-sonnet-5-5 xhigh
+reviewer-quality  claude-sonnet-5-5 high
 reviewer-security claude-opus-5-5 high
 reviewer-spec     claude-opus-5-5 high
-reviewer-tests    claude-sonnet-5 medium
+reviewer-tests    claude-sonnet-5-5 medium
 triage            claude-opus-5-5 medium
-doc-writer        claude-sonnet-5 low
+doc-writer        claude-sonnet-5-5 low
 EOF
 assert_eq 11 "$(ls "$ROOT"/agents/*.md | wc -l | tr -d ' ')" "every agent has a pinned model"
 

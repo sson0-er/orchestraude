@@ -1,7 +1,7 @@
 ---
 name: reviewer-quality
 description: Reviews an implementation diff for code quality and writes a findings JSON. Detects redundancy, reinvention of standard-library or in-repo utilities, and unclear intent.
-model: claude-sonnet-5
+model: claude-sonnet-5-5
 effort: high
 tools: Read, Grep, Glob, Bash, Write, Skill
 skills: [review-rules]

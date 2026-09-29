@@ -1,7 +1,7 @@
 ---
 name: doc-writer
 description: After a feature is complete, updates the README, changelog and user-facing docs to match what was built. Does not change code.
-model: claude-sonnet-5
+model: claude-sonnet-5-5
 effort: low
 tools: Read, Grep, Glob, Write, Edit
 ---
