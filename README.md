@@ -69,8 +69,8 @@ Roles whose mistakes carry into every later task run on Opus; high-volume roles 
 | designer, design-reviewer, planner | `claude-opus-5-5` | high |
 | reviewer-spec, reviewer-security | `claude-opus-5-5` | high |
 | triage | `claude-opus-5-5` | medium |
-| implementer | `claude-sonnet-5-5` | xhigh |
-| reviewer-quality | `claude-sonnet-5-5` | high |
+| implementer | `claude-sonnet-5-5` | high |
+| reviewer-quality | `claude-sonnet-5-5` | medium |
 | researcher, reviewer-tests | `claude-sonnet-5-5` | medium |
 | doc-writer | `claude-sonnet-5-5` | low |
 

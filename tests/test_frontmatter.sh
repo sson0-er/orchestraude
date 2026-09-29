@@ -42,8 +42,8 @@ researcher        claude-sonnet-5-5 medium
 designer          claude-opus-5-5 high
 design-reviewer   claude-opus-5-5 high
 planner           claude-opus-5-5 high
-implementer       claude-sonnet-5-5 xhigh
-reviewer-quality  claude-sonnet-5-5 high
+implementer       claude-sonnet-5-5 high
+reviewer-quality  claude-sonnet-5-5 medium
 reviewer-security claude-opus-5-5 high
 reviewer-spec     claude-opus-5-5 high
 reviewer-tests    claude-sonnet-5-5 medium

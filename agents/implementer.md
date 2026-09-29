@@ -2,7 +2,7 @@
 name: implementer
 description: Implements one planned task inside its declared scope, writes tests for every Definition of Done item, runs the verify script and reports as JSON. Continued with SendMessage for fix rounds.
 model: claude-sonnet-5-5
-effort: xhigh
+effort: high
 tools: Read, Grep, Glob, Bash, Write, Edit
 ---
 
