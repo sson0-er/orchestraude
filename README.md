@@ -12,21 +12,20 @@ A Claude Code plugin that makes Claude Code the orchestrator and delegates every
 
 ## Install
 
-For personal use, copy the plugin into Claude Code's skills directory, where it auto-loads in every session as `orchestraude@skills-dir`:
+This repository is also a plugin marketplace. Inside a Claude Code session:
 
 ```
-./install.sh
+/plugin marketplace add sson0-er/orchestraude
+/plugin install orchestraude@orchestraude
 ```
 
-The destination is `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/orchestraude` (override with `--dest DIR`). Run `/reload-plugins` to load it without restarting. Re-run `./install.sh` after changing the plugin; it replaces the previous copy. To remove it, delete that directory, or disable it with `claude plugin disable orchestraude@skills-dir`.
+Pick up new versions with `/plugin marketplace update orchestraude`. To remove it, run `/plugin uninstall orchestraude@orchestraude`.
 
 While developing, you can instead load the repo directly for one session:
 
 ```
 claude --plugin-dir /path/to/orchestraude
 ```
-
-Publishing through a private marketplace (for example a `~/.orchestraude` directory with a `.claude-plugin/marketplace.json`) is a possible later step; it is not set up yet.
 
 ## Usage
 
@@ -56,7 +55,6 @@ Each task is implemented by one `implementer` subagent, and every fix round cont
 | `skills/` | orchestrate (full flow), define-requirements (interactive), record-evidence (recording rules), review-rules (findings shape, severity calibration and later rounds shared by the four reviewers) |
 | `templates/` | Artifact templates |
 | `schemas/` | JSON Schemas for findings and reports |
-| `install.sh` | Copies the runtime files into the skills directory (see Install) |
 
 Artifacts live under `docs/orchestraude/` in the target project. Evidence (recorded external facts) and decisions (recorded design choices) accumulate across features.
 

@@ -1,0 +1,13 @@
+{
+  "name": "orchestraude",
+  "owner": {
+    "name": "Shoma Sonoda"
+  },
+  "plugins": [
+    {
+      "name": "orchestraude",
+      "source": "./",
+      "description": "Orchestrates role-specific Opus 5.5 and Sonnet 5.5 subagents to take a feature from requirements to reviewed code."
+    }
+  ]
+}
