@@ -3,8 +3,11 @@
 # touching HEAD, the index or the tree. The private index is seeded from
 # HEAD (so force-added, ignored-but-tracked files are kept) and then only
 # changed paths are rehashed. Reviewers diff snapshots to see only what the
-# task (round 1) or a fix round changed. Unreferenced objects live until
-# git gc prunes them (default two weeks), long enough for a task loop.
+# task (round 1) or a fix round changed. docs/orchestraude is left as it is
+# in HEAD: the reports, logs and findings written there between snapshots are
+# orchestration artifacts, not part of the change under review. Unreferenced
+# objects live until git gc prunes them (default two weeks), long enough for
+# a task loop.
 set -eu
 usage() { echo "Usage: orchestraude-snapshot [--cwd DIR]" >&2; exit 2; }
 cwd="$PWD"
@@ -24,7 +27,7 @@ tmp_index="$tmp_dir/index"
 if git rev-parse --verify -q HEAD >/dev/null 2>&1; then
   GIT_INDEX_FILE="$tmp_index" git read-tree HEAD
 fi
-GIT_INDEX_FILE="$tmp_index" git add -A >/dev/null
+GIT_INDEX_FILE="$tmp_index" git add -A -- ':(top)' ':(top,exclude)docs/orchestraude' >/dev/null
 tree="$(GIT_INDEX_FILE="$tmp_index" git write-tree)"
 parent=""
 if git rev-parse --verify -q HEAD >/dev/null 2>&1; then parent="-p $(git rev-parse HEAD)"; fi

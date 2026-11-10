@@ -77,6 +77,15 @@ s2="$("$ROOT/bin/orchestraude-snapshot" --cwd "$TMP/repo")"
 expected="$(printf 'A\tadded.py\nM\timpl.py')"
 assert_eq "$expected" "$(git -C "$TMP/repo" diff --name-status "$s1" "$s2")" "snapshot-to-snapshot diff shows added and modified untracked files"
 
+# Orchestration artifacts under docs/orchestraude (reports, logs, findings) are
+# written between snapshots; a reviewer's diff must not contain them.
+mkdir -p "$TMP/repo/docs/orchestraude/feat/tasks"
+a1="$("$ROOT/bin/orchestraude-snapshot" --cwd "$TMP/repo")"
+echo "report" > "$TMP/repo/docs/orchestraude/feat/tasks/01-x.report.json"
+echo "guide" > "$TMP/repo/docs/guide.md"
+a2="$("$ROOT/bin/orchestraude-snapshot" --cwd "$TMP/repo")"
+assert_eq "docs/guide.md" "$(git -C "$TMP/repo" diff --name-only "$a1" "$a2")" "docs/orchestraude is left out of the snapshot diff, other docs are kept"
+
 # Non-git directory exits 3. $TMP itself lives under this project's own
 # repo (tests/.tmp/...), so use a directory outside any repo instead.
 notgit="$(mktemp -d "${TMPDIR:-/tmp}/orchestraude-snapshot-notgit.XXXXXX")"
