@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Deterministically pre-merges the leftover low-severity findings of every
 # task in a feature so the triage agent judges only the merged items, not
-# every raw restatement. Dedup key is role + normalized title.
+# every raw restatement. Dedup key is role + normalized title. Items that
+# different roles reported at the same place are only linked ("same place
+# as"), never merged: they may be one problem in four wordings or four
+# problems on one line, and telling those apart is the triage agent's job.
 set -eu
 
 usage() {
@@ -70,6 +73,10 @@ fi
 # title) is still a valid key. The occurrence count is the number of tasks
 # the finding appears in. Up to 5 unique locations are kept per group; the
 # rest are only counted.
+#
+# A place is a task plus a location string. The task is part of it because a
+# line number means something else in another task's snapshot. Two items of
+# one role at one place stay unlinked: that reviewer already told them apart.
 groups="$(mktemp "${TMPDIR:-/tmp}/orchestraude-triage-groups.XXXXXX")"
 trap 'rm -f "$tagged" "$groups"' EXIT
 jq -s "$norm_def"'
@@ -91,8 +98,18 @@ jq -s "$norm_def"'
           tasks: $tasks,
           locations: ($locs[0:5]),
           locations_extra: (if ($locs | length) > 5 then ($locs | length) - 5 else 0 end),
-          detail: (([$g[].detail] | map(select(. != "")))[0] // "")
+          detail: (([$g[].detail] | map(select(. != "")))[0] // ""),
+          places: ([$g[] | select(.location != "") | [.task, .location]] | unique)
         }
+    )
+  | . as $items
+  | map(
+      . as $i
+      | .same_place = [
+          $items[]
+          | select(.role != $i.role and (.places - (.places - $i.places) | length) > 0)
+          | "\(.id) [\(.role)]"
+        ]
     )
 ' "$tagged" > "$groups" || { echo "internal error: grouping low findings failed" >&2; exit 2; }
 
@@ -119,7 +136,8 @@ item_line() {
     | (if .detail == "" then "(none)" else (.detail | gsub("\\s+"; " ")) end) as $detail
     | (if (.locations | length) == 0 then "(none)" else ([.locations[]] | join("; ")) end) as $locs0
     | ($locs0 + (if .locations_extra > 0 then " (+\(.locations_extra) more)" else "" end)) as $locs
-    | "- \(.id) [\(.role)] \($title) (\(.count) occurrences; tasks: \([.tasks[]] | join(", "))) — location: \($locs) — detail: \($detail)"
+    | (if (.same_place | length) == 0 then "" else " — same place as: " + (.same_place | join(", ")) end) as $same
+    | "- \(.id) [\(.role)] \($title) (\(.count) occurrences; tasks: \([.tasks[]] | join(", "))) — location: \($locs) — detail: \($detail)\($same)"
   '
 }
 
