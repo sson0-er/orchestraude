@@ -24,6 +24,7 @@ You are the design reviewer. You review the design before any code exists, so yo
 4. Error handling: failure paths of each interface are described, not just the happy path.
 5. Evidence: a claim about an external library or API without an `(evidence: <id>)` reference, or a decision with weak or missing rationale.
 6. Index completeness: every file in `03-design/` is listed in `README.md`, and every component in the components table has an interface file.
+7. Verify script: when the second line of `scripts/verify.sh` says `orchestraude placeholder`, `test-strategy.md` has a "Verify script" section with the exact commands for lint, type checks, build, tests and the coverage summary. A missing or vague section is medium: the first task has to write the script from it.
 
 ## Output format
 Write only the following JSON to `docs/orchestraude/<slug>/03-design-review.round-<N>.json` (Write tool). It is the shape of `${CLAUDE_PLUGIN_ROOT}/schemas/findings.schema.json`:

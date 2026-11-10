@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Creates the docs/orchestraude layout in a target project. Idempotent so
-# the orchestrate skill can call it at the start of every feature safely.
+# Creates the docs/orchestraude layout in a target project, and a placeholder
+# verify script when the project has none. Idempotent so the orchestrate
+# skill can call it at the start of every feature safely.
 set -eu
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -33,5 +34,16 @@ if [ ! -e "$base/review-policy.md" ]; then
 fi
 if [ ! -e "$base/$slug/01-requirements.md" ]; then
   sed "s/<feature>/$slug/g" "$ROOT/templates/requirements.md" > "$base/$slug/01-requirements.md"
+fi
+# A project with no verify script, typically a new repository, could not
+# start: there is nothing to write one from before the design has chosen the
+# tools. The placeholder fails on purpose, so the verify gate stays closed
+# until the first planned task replaces it with the real checks. A project
+# that names its own command through ORCHESTRAUDE_VERIFY_CMD is left alone.
+if [ -z "${ORCHESTRAUDE_VERIFY_CMD:-}" ] && [ ! -e "$cwd/scripts/verify.sh" ]; then
+  mkdir -p "$cwd/scripts"
+  cp "$ROOT/templates/verify.sh" "$cwd/scripts/verify.sh"
+  chmod +x "$cwd/scripts/verify.sh"
+  echo "created scripts/verify.sh: a placeholder that fails until the first planned task replaces it"
 fi
 echo "initialized $base/$slug"
