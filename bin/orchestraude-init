@@ -26,6 +26,11 @@ mkdir -p "$base/$slug/tasks" "$base/evidence" "$base/decisions"
 if [ ! -e "$base/evidence/INDEX.md" ]; then
   cp "$ROOT/templates/evidence-index.md" "$base/evidence/INDEX.md"
 fi
+# The orchestrator and the triage agent only ever append to or read this
+# file; creating it here keeps the template path out of their prompts.
+if [ ! -e "$base/review-policy.md" ]; then
+  cp "$ROOT/templates/review-policy.md" "$base/review-policy.md"
+fi
 if [ ! -e "$base/$slug/01-requirements.md" ]; then
   sed "s/<feature>/$slug/g" "$ROOT/templates/requirements.md" > "$base/$slug/01-requirements.md"
 fi

@@ -40,38 +40,15 @@ orchestraude-preflight && orchestraude-init $slug && orchestraude-status $slug
 
 If `orchestraude-preflight` exits 1, a prerequisite is missing: show the user its output and stop.
 
-`orchestraude-status` prints `next: <phase>`, derived from the files alone: Phase 1 for a new feature, the point of interruption for a resumed one. Start there. Run it again whenever you are unsure where the feature stands, for example after your context was compacted.
+`orchestraude-status` prints `next: <phase>`, derived from the files alone. Start there:
+
+- `phase-1` to `phase-3`: read `${CLAUDE_SKILL_DIR}/phase-1-to-3.md` and follow it from the step named.
+- `phase-4`: the task loop below.
+- `phase-4.9`, `phase-5`: read `${CLAUDE_SKILL_DIR}/phase-4.9-to-5.md` and follow it.
+
+Whenever you are unsure where the feature stands, for example after your context was compacted, run `orchestraude-status $slug` again and re-read the phase file it points to before acting.
 
 If `CLAUDE.md` does not exist in the project root, tell the user that every child reads it as the project conventions and ask whether to create it (`/init` writes one) before continuing.
-
-## Phase 1: requirements → gate 1
-
-Invoke the `orchestraude:define-requirements` skill with `$slug`. Do not continue until it reports "gate 1 passed".
-
-## Phase 2: research, design, design review → gate 2
-
-1. Launch `orchestraude:researcher` with the Agent tool. Prompt: "slug is $slug. Write 02-research.md."
-2. Launch `orchestraude:designer`. Prompt: "slug is $slug. Write the design directory 03-design/."
-3. Read the "Open questions" section of `docs/orchestraude/$slug/03-design/questions.md`. If it lists any, ask the user each one, one at a time (AskUserQuestion), then relaunch `orchestraude:designer` with "slug is $slug. Apply these answers to 03-design/ (move them to Resolved questions) and record the decisions: ..." so the answers land in the document.
-4. Let N be 1 plus the number of existing `docs/orchestraude/$slug/03-design-review.round-*.json` files. Launch `orchestraude:design-reviewer`. Prompt: "slug is $slug, round is N. Review the design and write 03-design-review.round-N.json." From round 2 on, append: "Read 03-design-review.history.md first."
-5. Run:
-
-   ```
-   orchestraude-findings-merge --out docs/orchestraude/$slug/03-design-review.md --fail-on medium \
-     docs/orchestraude/$slug/03-design-review.round-N.json
-   ```
-
-6. Exit 1 means high or medium findings: launch `orchestraude:designer` in revision mode. Prompt: "slug is $slug. Revise 03-design/ to address the findings in 03-design-review.md and append your response to 03-design-review.history.md." Then repeat steps 4 and 5. At most two revisions: if round 3 still exits 1, show the user the counts line and the designer's final message and ask how to proceed. Exit 2 means the design reviewer wrote invalid findings JSON: relaunch it once with the same round number and merge again; if the merge exits 2 a second time, show the user the error and stop.
-7. Show the user the paths of `03-design/README.md` and `03-design-review.md` with the counts, and ask for approval. This is gate 2. Do not continue without it. On approval, record it:
-
-   ```
-   echo "- gate 2 approved $(date +%F)" >> docs/orchestraude/$slug/gates.md
-   ```
-
-## Phase 3: implementation plan → gate 3
-
-1. Launch `orchestraude:planner`. Prompt: "slug is $slug. Write 04-plan.md and tasks/*.md."
-2. Show the user the task table from `04-plan.md` and ask for approval. This is gate 3. Do not continue without it. On approval, record it: `echo "- gate 3 approved $(date +%F)" >> docs/orchestraude/$slug/gates.md`.
 
 ## Phase 4: task loop (sequential)
 
@@ -176,32 +153,4 @@ When the fix run ends, apply 4.0 first. Then, when the fix was triggered by revi
 
 ### 4.5 Task done
 
-Set `status` in `<task>.md` to `done` and move to the next task. When no task is left, run `orchestraude-status $slug` and go where it points: Phase 4.9, or Phase 5 when gate 4 is already on record (these were follow-up tasks).
-
-## Phase 4.9: low-findings triage → gate 4
-
-Runs once, after every task is done and before documentation.
-
-1. Merge the leftover lows deterministically:
-
-```
-orchestraude-findings-triage --tasks-dir docs/orchestraude/$slug/tasks --out docs/orchestraude/$slug/05-low-findings.md
-```
-
-The command prints `raw: <M> merged: <N>`. If N is 0, record `echo "- gate 4 skipped $(date +%F): no low findings" >> docs/orchestraude/$slug/gates.md` and skip to Phase 5.
-
-2. Launch `orchestraude:triage` with the Agent tool. Prompt: "slug is $slug. Read 05-low-findings.md and write 05-low-findings-triage.md."
-3. Show the user the summary table and the "Follow-up task candidates (from A)", "B. Decisions needed" and "D. Convention candidates" sections of `docs/orchestraude/$slug/05-low-findings-triage.md`, then ask, one question at a time (AskUserQuestion): each B question, which A candidates to implement now, which D conventions to adopt. This is gate 4; do not continue without the user's answers.
-4. Act on the answers, in this order:
-   - B answers: relaunch `orchestraude:designer` with "slug is $slug. Apply these answers to 03-design/questions.md (Resolved questions) and record the decisions: ...".
-   - C items, A candidates the user did not choose, and D items the user declined: append them to `docs/orchestraude/review-policy.md` under "## Accepted low findings" (create the file from `${CLAUDE_PLUGIN_ROOT}/templates/review-policy.md` if it does not exist), one line each with today's date and $slug.
-   - D conventions adopted: append each rule to `CLAUDE.md` and to "## Conventions adopted" in `docs/orchestraude/review-policy.md`.
-   - Follow-up tasks are the A candidates the user chose plus every B answer that changes what the code does today (each B entry states the current behavior). If there are any, launch `orchestraude:planner`. Prompt: "slug is $slug. Append tasks to 04-plan.md and tasks/ for these follow-ups from 05-low-findings-triage.md: <chosen A candidates; B items with the user's answers>."
-   - Record the gate, after the planner has returned so chosen follow-ups cannot be lost: `echo "- gate 4 approved $(date +%F)" >> docs/orchestraude/$slug/gates.md`.
-   - Run Phase 4 for the new tasks. Gate 4 is on record, so Phase 5 follows them, not a second triage; the lows they leave are reported in the completion report.
-
-## Phase 5: documentation and completion report
-
-1. Launch `orchestraude:doc-writer`. Prompt: "slug is $slug. Update the documentation."
-2. Record completion: `echo "- done $(date +%F)" >> docs/orchestraude/$slug/gates.md`.
-3. Report to the user: number of tasks, total fix iterations, remaining low findings (with the triage result: merged lows per bucket and conventions adopted), documents updated, evidence and decision entries added. Include the artifact paths.
+Set `status` in `<task>.md` to `done` and move to the next task. When no task is left, run `orchestraude-status $slug` and go where it points in `${CLAUDE_SKILL_DIR}/phase-4.9-to-5.md`: Phase 4.9, or Phase 5 when gate 4 is already on record (these were follow-up tasks).
