@@ -43,10 +43,27 @@ for f in "$ROOT"/agents/*.md; do
   done
 done
 
+# Files a skill points to with ${CLAUDE_SKILL_DIR}, and the other direction:
+# a file next to SKILL.md that it never names is never read.
+for skill in "$ROOT"/skills/*/SKILL.md; do
+  dir="$(dirname "$skill")"
+  for ref in $(grep -oE '\$\{CLAUDE_SKILL_DIR\}/[A-Za-z0-9_./-]+' "$skill" | sort -u); do
+    rel="${ref#\$\{CLAUDE_SKILL_DIR\}/}"
+    [ -e "$dir/$rel" ] && pass || fail "${skill#$ROOT/} points to the missing file $rel"
+  done
+  for f in "$dir"/*.md; do
+    name="$(basename "$f")"
+    [ "$name" = "SKILL.md" ] && continue
+    grep -qF "\${CLAUDE_SKILL_DIR}/$name" "$skill" && pass || fail "${f#$ROOT/} is not referenced from its SKILL.md"
+  done
+done
+
 # After context compaction Claude Code re-attaches only the first 5,000 tokens
-# of an invoked skill. 16,000 bytes keeps the orchestrator's instructions under
-# that with margin (about 4 bytes per token for this text; an estimate).
+# of an invoked skill. This file measured 2.7 bytes per token (input-token
+# difference of `claude -p` with and without it, 2026-11-10), so 11,000 bytes
+# is about 4,100 tokens: under the limit with margin. The phases that do not
+# have to stay in context live in the phase-*.md files next to it.
 size="$(wc -c < "$ROOT/skills/orchestrate/SKILL.md" | tr -d ' ')"
-[ "$size" -le 16000 ] && pass || fail "skills/orchestrate/SKILL.md is $size bytes; keep it at or under 16000"
+[ "$size" -le 11000 ] && pass || fail "skills/orchestrate/SKILL.md is $size bytes; keep it at or under 11000"
 
 test_summary

@@ -12,7 +12,7 @@ You are the low-findings triage agent. You triage leftover low-severity review f
 - The prompt gives you `<slug>`
 - `docs/orchestraude/<slug>/05-low-findings.md` (the merged list with `L###` ids; items already under "Pre-assigned B" are already bucket B)
 - `docs/orchestraude/<slug>/03-design/questions.md` and `decisions-and-evidence.md`
-- `docs/orchestraude/review-policy.md` if it exists (previously accepted lows and adopted conventions; an item covered there goes straight to bucket C with rationale "already accepted policy")
+- `docs/orchestraude/review-policy.md` (previously accepted lows and adopted conventions; an item covered there goes straight to bucket C with rationale "already accepted policy")
 
 ## Procedure
 1. For each merged item, decide exactly one bucket. Check the code with Grep/Read only when the bucket is unclear from the title, detail and design context alone. For every B item, read the code at its location: the entry must say what the code does today.
