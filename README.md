@@ -53,6 +53,7 @@ Each task is implemented by one `implementer` subagent, and every fix round cont
 | `bin/orchestraude-verify` | Verify gate: runs `scripts/verify.sh` and keeps the log |
 | `bin/orchestraude-report-check` | Validates an implementer report against the schema and prints its status |
 | `bin/orchestraude-report-clear` | Deletes a task's old implementer report before the implementer runs again, so a run that writes none is caught; a command instead of `rm` so sessions that ask before every `rm` are not interrupted |
+| `bin/orchestraude-task` | Keeps a task file's bookkeeping: marks the task done, or counts a fix attempt (five before the user decides) and logs it under History |
 | `bin/orchestraude-findings-merge` | Merges review findings and applies a severity threshold |
 | `bin/orchestraude-findings-triage` | Merges leftover low findings across all tasks of a feature, deterministically, before the triage agent classifies them; items that different reviewers reported at the same place are linked, not merged, so none is dropped |
 | `bin/orchestraude-init` | Creates the `docs/orchestraude/` layout |
