@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Deletes a task's implementer report before the implementer runs again, so a
+# run that writes no report fails orchestraude-report-check instead of passing
+# on the previous run's file. This is a command rather than an `rm` in the
+# prompt because many sessions ask the user before every `rm`, which stopped
+# the flow once per task. In exchange it must not work as a general delete:
+# it accepts only docs/orchestraude/<slug>/tasks/<task-id>.report.json.
+set -eu
+
+usage() { echo "Usage: orchestraude-report-clear docs/orchestraude/<slug>/tasks/<task-id>.report.json" >&2; exit 2; }
+
+[ $# -eq 1 ] || usage
+
+# A task id never contains a dot, so "<id>.findings.md" and the like cannot match.
+task_report='^(.*/)?docs/orchestraude/[a-z0-9-]+/tasks/[^/.]+\.report\.json$'
+[[ "$1" =~ $task_report ]] || { echo "not a task report: $1" >&2; exit 2; }
+
+rm -f -- "$1"

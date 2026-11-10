@@ -58,7 +58,7 @@ Resuming an unfinished task: if `$T.report.json` exists, the implementer already
 
 ### 4.0 Implementer reports
 
-Before every implementer launch or continuation, delete the old report so a run that writes none is caught: `rm -f $T.report.json`.
+Before every implementer launch or continuation, delete the old report so a run that writes none is caught: `orchestraude-report-clear $T.report.json`.
 
 After every implementer run (the initial one and every continuation), before anything else:
 
