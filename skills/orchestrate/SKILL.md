@@ -19,7 +19,7 @@ You are the orchestrator (parent). You never research, design, implement or revi
 
 Talk to the user in the user's language. All artifacts are written in English.
 
-Do not read the children's deliverables. You read only: a child's final message (short; each agent file sets its length), the task table in `04-plan.md`, the Open questions section of `03-design/questions.md`, the counts line of `*.findings.md`, the finding titles in `03-design-review.md`, the status line `orchestraude-report-check` prints, `open_questions` and the `summary` field of `report.json`, the frontmatter and History section of `tasks/<task>.md` (which you edit), `$T.base.snapshot` and `$T.round-*.snapshot` (one line each), `05-low-findings-triage.md` in full (it is a summary artifact), and `docs/orchestraude/review-policy.md` (which you append to). The history file is for reviewers, not for you. For evidence you read `INDEX.md` only.
+Do not read the children's deliverables. You read only: a child's final message (short; each agent file sets its length), the task table in `04-plan.md`, the Open questions section of `03-design/questions.md`, the counts line of `*.findings.md`, the finding titles in `03-design-review.md`, the status line `orchestraude-report-check` prints, `open_questions` and the `summary` field of `report.json`, the frontmatter of `tasks/<task>.md`, `$T.base.snapshot` and `$T.round-*.snapshot` (one line each), `05-low-findings-triage.md` in full (it is a summary artifact), and `docs/orchestraude/review-policy.md` (which you append to). The history file is for reviewers, not for you. For evidence you read `INDEX.md` only.
 
 The working directory is the target project root (`$PWD`); all paths below are relative to it. The plugin's `bin/` is on PATH, so `orchestraude-*` commands run as is. Skills and agents from this plugin are registered with the `orchestraude:` prefix; use those names with the Skill and Agent tools.
 
@@ -66,7 +66,7 @@ After every implementer run (the initial one and every continuation), before any
 orchestraude-report-check $T.report.json
 ```
 
-Exit 2 means the report is missing or malformed: treat it exactly like a failed implementer run (see Escalation rules). Otherwise the command prints `status: <status> open_questions: <n>`. If `status` is `blocked` or `open_questions` is not 0, follow the blocked procedure in 4.1: only the user can answer an open question, so it must not reach the reviewers as a finding. The "already 5" stop check in 4.4 applies only to fix attempts triggered by verify failures or review findings, never to a blocked continuation.
+Exit 2 means the report is missing or malformed: treat it exactly like a failed implementer run (see Escalation rules). Otherwise the command prints `status: <status> open_questions: <n>`. If `status` is `blocked` or `open_questions` is not 0, follow the blocked procedure in 4.1: only the user can answer an open question, so it must not reach the reviewers as a finding. The attempt limit in 4.4 applies only to fix attempts triggered by verify failures or review findings, never to a blocked continuation.
 
 ### 4.1 Implement
 
@@ -82,7 +82,7 @@ You reported open questions. Here are the answers:
 Continue the task within its scope using these answers, run scripts/verify.sh, and rewrite the JSON report.
 ```
 
-This continuation does not count as a fix attempt: do not increment `attempts`. Then go to 4.2.
+This continuation is not a fix attempt: skip the attempt count in 4.4. Then go to 4.2.
 
 ### 4.2 Verify gate
 
@@ -134,12 +134,12 @@ and rewrite the JSON report.
 
 ### 4.4 Fix
 
-Before sending the fix, read `attempts` in the frontmatter of `<task>.md`. If it is already 5, stop: show the user the counts line of `$T.findings.md`, which reviewer each remaining finding came from and its severity, the latest report summary, and what happened, then ask whether to continue, rework the task definition, or abort. Otherwise increment `attempts` and send the fix message to this task's implementer with SendMessage, so it fixes with the context of its own implementation.
+Before sending the fix, count the attempt: `orchestraude-task attempt $T.md "<reason>"`, where the reason is the counts line of `$T.findings.md` or "verify failed". It adds 1 to `attempts` and a line to the task's History. Exit 1 means five attempts are used up and nothing was changed: stop, show the user the counts line of `$T.findings.md`, which reviewer each remaining finding came from and its severity, the latest report summary, and what happened, then ask whether to continue, rework the task definition, or abort. On "continue", run the command again with `--force` after `attempt`. Then send the fix message to this task's implementer with SendMessage, so it fixes with the context of its own implementation.
 
 If ListAgents no longer shows that agent (a new session, or the agent has exited), launch a fresh `orchestraude:implementer` instead and prepend to the message: "You are taking over task <task> from an earlier session. Read docs/orchestraude/$slug/tasks/<task>.md, its References, and docs/orchestraude/$slug/tasks/<task>.findings.history.md before you start." Keep the new agent id for the following rounds.
 
-When the fix run ends, apply 4.0 first. Then, when the fix was triggered by review findings (not by a verify failure), append the implementer's stated reasons to the history: `{ echo "### Implementer response after round N"; echo; jq -r .summary $T.report.json; echo; } >> $T.findings.history.md`. Append the attempt number and the findings counts line (or "verify failed" when the attempt came from a verify failure) to the History section of `<task>.md`, and return to 4.2.
+When the fix run ends, apply 4.0 first. Then, when the fix was triggered by review findings (not by a verify failure), append the implementer's stated reasons to the history: `{ echo "### Implementer response after round N"; echo; jq -r .summary $T.report.json; echo; } >> $T.findings.history.md`. Then return to 4.2.
 
 ### 4.5 Task done
 
-Set `status` in `<task>.md` to `done` and move to the next task. When no task is left, run `orchestraude-status $slug` and go where it points in `${CLAUDE_SKILL_DIR}/phase-4.9-to-5.md`: Phase 4.9, or Phase 5 when gate 4 is already on record (these were follow-up tasks).
+Mark the task done with `orchestraude-task done $T.md` and move to the next task. When no task is left, run `orchestraude-status $slug` and go where it points in `${CLAUDE_SKILL_DIR}/phase-4.9-to-5.md`: Phase 4.9, or Phase 5 when gate 4 is already on record (these were follow-up tasks).

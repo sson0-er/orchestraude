@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Keeps the bookkeeping of a task file: marks the task done, or counts a fix
+# attempt and logs it under History. The orchestrator used to make these edits
+# itself with sed, whose in-place flag differs between macOS and Linux, and a
+# wrong edit here moves where a resumed feature starts (orchestraude-status
+# reads `status`) or how many fix rounds a task gets. Only the frontmatter
+# keys change; the same words in the task body are left alone.
+#
+# Exit 0 done, 1 attempt refused (the limit is reached), 2 usage or not a task file.
+set -eu
+
+# Fix attempts a task gets before the user has to decide how to go on.
+LIMIT=5
+
+usage() {
+  echo "Usage: orchestraude-task done TASK.md" >&2
+  echo "       orchestraude-task attempt [--force] TASK.md REASON" >&2
+  exit 2
+}
+
+[ $# -ge 1 ] || usage
+cmd="$1"; shift
+force=0
+if [ "$cmd" = attempt ] && [ "${1:-}" = "--force" ]; then force=1; shift; fi
+case "$cmd" in
+  done) [ $# -eq 1 ] || usage ;;
+  attempt) [ $# -eq 2 ] && [ -n "$2" ] || usage ;;
+  *) usage ;;
+esac
+file="$1"
+[ -f "$file" ] || { echo "task file not found: $file" >&2; exit 2; }
+
+# Value of a frontmatter key; empty without a frontmatter or without the key.
+field() {
+  awk -v key="$1:" 'NR==1 && $0!="---"{exit} NR>1 && $0=="---"{exit} $1==key{print $2; exit}' "$file"
+}
+
+tmp="$(mktemp "${TMPDIR:-/tmp}/orchestraude-task.XXXXXX")"
+trap 'rm -f "$tmp"' EXIT
+
+# Replaces one frontmatter key and hands every body line to the rules that follow.
+set_key='
+  NR==1 && $0=="---" { fm=1; print; next }
+  fm && $0=="---" { fm=0; print; next }
+  fm { if ($1==key) print key " " value; else print; next }
+'
+
+# Adds ENTRY as the last line of the History section. Blank lines at the end
+# of the section are held back so the entry lands above them, not after.
+add_entry='
+  function held() { for (i=1; i<=n; i++) print ""; n=0 }
+  in_hist && /^## / { print ENVIRON["ENTRY"]; in_hist=0; added=1; held() }
+  $0=="## History" { in_hist=1; print; next }
+  in_hist && $0=="" { n++; next }
+  in_hist { held() }
+  { print }
+  END {
+    if (in_hist) { print ENVIRON["ENTRY"]; held() }
+    else if (!added) { print ""; print "## History"; print ENVIRON["ENTRY"] }
+  }
+'
+
+case "$cmd" in
+  done)
+    [ -n "$(field status)" ] || { echo "no status in the frontmatter: $file" >&2; exit 2; }
+    awk -v key="status:" -v value="done" "$set_key"'{ print }' "$file" > "$tmp"
+    ;;
+  attempt)
+    count="$(field attempts)"
+    case "$count" in
+      ""|*[!0-9]*) echo "no numeric attempts in the frontmatter: $file" >&2; exit 2 ;;
+    esac
+    if [ "$count" -ge "$LIMIT" ] && [ "$force" -eq 0 ]; then
+      echo "attempts: $count (limit $LIMIT reached, nothing changed)"
+      exit 1
+    fi
+    count=$((count + 1))
+    # History is one line per attempt, whatever the reason looks like.
+    reason="$(printf '%s' "$2" | tr '\n' ' ' | sed -e 's/  */ /g' -e 's/^ //' -e 's/ $//')"
+    ENTRY="- attempt $count: $reason" awk -v key="attempts:" -v value="$count" "$set_key$add_entry" "$file" > "$tmp"
+    echo "attempt: $count"
+    ;;
+esac
+
+# Written back with cat so the file keeps its mode and owner.
+cat "$tmp" > "$file"
