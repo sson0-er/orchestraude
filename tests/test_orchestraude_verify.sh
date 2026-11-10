@@ -16,6 +16,14 @@ cp "$ROOT/tests/fixtures/verify-fail.sh" "$TMP/proj/scripts/verify.sh"
 assert_exit 1 $? "failing verify exits 1"
 assert_contains "$(cat "$TMP/fail.log")" "test_foo FAILED" "stderr captured in log"
 
+# The script's own exit code must not collide with the wrapper's reserved codes
+# (2 usage, 3 no script): any failure is reported as 1, the real code stays in the log.
+printf '#!/usr/bin/env bash\necho "runner internal error"\nexit 3\n' > "$TMP/proj/scripts/verify.sh"
+chmod +x "$TMP/proj/scripts/verify.sh"
+"$ROOT/bin/orchestraude-verify" --log "$TMP/exit3.log" --cwd "$TMP/proj"
+assert_exit 1 $? "a verify script that exits 3 is reported as 1"
+assert_contains "$(cat "$TMP/exit3.log")" "verify exit: 3" "the script's own exit code is kept in the log"
+
 # override via env
 ORCHESTRAUDE_VERIFY_CMD="$ROOT/tests/fixtures/verify-pass.sh" "$ROOT/bin/orchestraude-verify" --log "$TMP/env.log" --cwd "$TMP"
 assert_exit 0 $? "ORCHESTRAUDE_VERIFY_CMD override works"

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Deterministic gate run before any LLM review. The project owns the
 # definition (scripts/verify.sh); this wrapper only captures output and
-# propagates the exit code so the orchestrator can branch on it.
+# reports pass or fail so the orchestrator can branch on the exit code:
+# 0 passed, 1 failed, 2 usage error, 3 no verify script.
 set -u
 
 usage() { echo "Usage: orchestraude-verify --log FILE [--cwd DIR]" >&2; exit 2; }
@@ -34,4 +35,6 @@ fi
 "$cmd" >"$log" 2>&1
 status=$?
 echo "verify exit: $status" >> "$log"
-exit $status
+# Any failure is reported as 1: the script's own code (kept in the log above)
+# could otherwise be mistaken for this wrapper's 2 or 3.
+[ "$status" -eq 0 ] || exit 1
