@@ -4,8 +4,9 @@ A Claude Code plugin that makes Claude Code the orchestrator and delegates every
 
 ## Prerequisites
 
-- Claude Code and `jq`
+- Claude Code, `git` and `jq`
 - macOS or Linux (bash 3.2 or newer)
+- The target project is a git repository: each review round diffs snapshots of the working tree
 - In the target project: `scripts/verify.sh`, one executable that runs lint, type checks, build, tests and prints a coverage summary (must be executable; `ORCHESTRAUDE_VERIFY_CMD` takes a single executable path, no arguments)
 - In the target project: `CLAUDE.md` with the project conventions; every subagent reads it
 - A session whose permission mode lets subagents edit files and run `scripts/verify.sh`: the implementer writes to the working tree directly
@@ -39,12 +40,16 @@ Plugin skills are always namespaced with the plugin name, so the short form `/or
 
 The flow is: requirements (interactive), research, design, design review, plan, then per task implementation, verify gate, four parallel reviews and a bounded fix loop, then a low-findings triage, then documentation. It stops for explicit approval after requirements, after design, after the plan, and after the triage (four gates).
 
+Running the same command again resumes an interrupted feature. The orchestrator does not rely on memory for this: `orchestraude-status` reads where the feature stands from the files under `docs/orchestraude/<feature-slug>/`, including the gate approvals recorded in `gates.md`.
+
 Each task is implemented by one `implementer` subagent, and every fix round continues that same agent, so it fixes with the context of its own implementation. The orchestrator itself never reads the deliverables; it branches on exit codes, counts lines and the children's short final messages.
 
 ## Layout
 
 | Path | Role |
 |---|---|
+| `bin/orchestraude-preflight` | Checks the prerequisites (jq, git repository, verify script) before any work starts |
+| `bin/orchestraude-status` | Prints the next step of a feature from its files, to start, resume or re-orient |
 | `bin/orchestraude-verify` | Verify gate: runs `scripts/verify.sh` and keeps the log |
 | `bin/orchestraude-report-check` | Validates an implementer report against the schema and prints its status |
 | `bin/orchestraude-findings-merge` | Merges review findings and applies a severity threshold |
@@ -86,7 +91,7 @@ Each agent sets its model and effort in its frontmatter; `tests/test_frontmatter
 bash tests/run.sh
 ```
 
-No external dependencies beyond `jq`.
+No external dependencies beyond `git` and `jq`. GitHub Actions runs the suite on macOS and Linux for every push to `main` and every pull request.
 To run the same suite on Linux with Docker:
 
 ```

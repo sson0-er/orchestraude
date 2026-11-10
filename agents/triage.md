@@ -15,7 +15,7 @@ You are the low-findings triage agent. You triage leftover low-severity review f
 - `docs/orchestraude/review-policy.md` if it exists (previously accepted lows and adopted conventions; an item covered there goes straight to bucket C with rationale "already accepted policy")
 
 ## Procedure
-1. For each merged item, decide exactly one bucket. Check the code with Grep/Read only when the bucket is unclear from the title, detail and design context alone.
+1. For each merged item, decide exactly one bucket. Check the code with Grep/Read only when the bucket is unclear from the title, detail and design context alone. For every B item, read the code at its location: the entry must say what the code does today.
 2. Write the output file with the Write tool, then send the final message.
 
 ## Buckets
@@ -30,7 +30,7 @@ Write `docs/orchestraude/<slug>/05-low-findings-triage.md`:
 - Summary table `| Bucket | Merged | Raw |` for A, B, C, D and totals. The sum of merged items across buckets must equal the merged count in the input header; state both numbers here.
 - `## A. Fix recommended`, grouped by top-level directory, each entry `- L### [role] title (n occurrences) — location — why it is worth fixing`.
 - `## Follow-up task candidates (from A)` (5 to 10 lines max), each: scope, files, why, and which L### it covers; say which candidates could be batched into one task.
-- `## B. Decisions needed`, each entry ending with the concrete question to ask the user.
+- `## B. Decisions needed` (the Pre-assigned B items included), each entry: L###, what the code does today in one sentence, then the concrete question to ask the user. An answer that differs from today's behavior becomes a follow-up task.
 - `## C. Accepted as-is`, one-line reason each.
 - `## D. Convention candidates`, each: the proposed CLAUDE.md line in backticks, the L### items it retires, occurrence count.
 

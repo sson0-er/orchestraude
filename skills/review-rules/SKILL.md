@@ -6,15 +6,15 @@ user-invocable: false
 
 # Implementation review rules
 
-These rules apply to every implementation reviewer. Your agent file gives your role id, your checklist and the path of your findings file `docs/orchestraude/<slug>/tasks/<task-id>.findings.<role>.json`.
+These rules apply to every implementation reviewer. Your agent file gives your role id and your checklist. Your findings file is `docs/orchestraude/<slug>/tasks/<task-id>.round-<N>.findings.<role>.json`, where `<N>` is the round number from the prompt.
 
-## Review policy
-Read `docs/orchestraude/review-policy.md` when it exists: it lists accepted low findings and adopted conventions. Do not report a low finding it covers.
+## Project conventions
+The conventions in the project's `CLAUDE.md` are settled. Do not report a low finding that one of them covers.
 
 ## Output format
 Write only the following JSON to your findings file (Write tool). It is the shape of `${CLAUDE_PLUGIN_ROOT}/schemas/findings.schema.json`; every field is required and every value is a string:
 
-{"summary": "one or two sentences; from round 2 on, then one line per previous-round finding of your role: '<title>: addressed' or '<title>: not addressed'", "findings": [{"severity": "high|medium|low", "title": "short headline", "location": "path:line, or empty string", "detail": "what is wrong and how to fix it", "evidence": "evidence id when the claim rests on an external fact, else empty string"}]}
+{"summary": "one or two sentences; from round 2 on, then one line per previous-round high or medium finding of your role: '<title>: addressed' or '<title>: not addressed'", "findings": [{"severity": "high|medium|low", "title": "short headline", "location": "path:line, or empty string", "detail": "what is wrong and how to fix it", "evidence": "evidence id when the claim rests on an external fact, else empty string"}]}
 
 If there is nothing to report, `findings` is an empty array. Final message: the summary and the counts only. Do not paste content.
 
@@ -31,5 +31,5 @@ The prompt states the round number and two snapshot SHAs: the previous tree (rou
 ## Later rounds
 From round 2 on the prompt also names `<task>.findings.history.md` (all previous rounds' merged findings plus the implementer's stated reasons for anything left unchanged).
 1. Read the history first. Do not contradict a change an earlier round asked for, and do not re-raise an item the implementer declined with a stated reason unless you can show the reason is wrong.
-2. For each previous-round finding from your role, state whether it is addressed in the summary's per-finding lines (see Output format); re-report it only if it is not.
+2. For each previous-round high or medium finding from your role, state whether it is addressed in the summary's per-finding lines (see Output format); re-report it only if it is not. Do not re-report previous lows: every round's findings file is kept, and the triage after the last task reads the lows of all rounds.
 3. Review only the fix: the snapshot diff above. Behavior changed by the fix counts as part of the fix even where the lines did not change, for example a test that no longer exercises the path it covered. Code the fix did not affect was already reviewed; report something there only as a high (a real defect), never as medium or low.

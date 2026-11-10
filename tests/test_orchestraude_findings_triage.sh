@@ -149,4 +149,26 @@ assert_contains "$(cat "$TMP/newline-out.md")" "Multi line title" "embedded newl
 newline_lines="$(grep -c '^- L' "$TMP/newline-out.md")"
 assert_eq "1" "$newline_lines" "exactly one item line for the newline-title finding"
 
+# Findings files are named by round. The lows of every round are read (a low
+# from round 1 is not lost when the task needed a fix round), the task id
+# carries no round suffix, and a low repeated in a later round counts once.
+mkdir -p "$TMP/rounds"
+cat > "$TMP/rounds/01-a.round-1.findings.quality.json" <<'EOF'
+{"summary":"q","findings":[
+ {"severity":"low","title":"Only in round one","location":"a.go:1","detail":"d","evidence":""},
+ {"severity":"low","title":"Repeated low","location":"a.go:2","detail":"d","evidence":""}
+]}
+EOF
+cat > "$TMP/rounds/01-a.round-2.findings.quality.json" <<'EOF'
+{"summary":"q","findings":[
+ {"severity":"low","title":"Repeated low","location":"a.go:3","detail":"d","evidence":""}
+]}
+EOF
+line_r="$("$ROOT/bin/orchestraude-findings-triage" --tasks-dir "$TMP/rounds" --out "$TMP/rounds-out.md")"
+assert_eq "raw: 2 merged: 2" "$line_r" "a low repeated across rounds of one task counts once"
+rounds_out="$(cat "$TMP/rounds-out.md")"
+assert_contains "$rounds_out" "Only in round one (1 occurrences; tasks: 01-a)" "round-1 low is kept and its task id has no round suffix"
+assert_contains "$rounds_out" "Repeated low (1 occurrences; tasks: 01-a)" "repeated low is one occurrence"
+assert_contains "$rounds_out" "a.go:2; a.go:3" "locations from both rounds are listed"
+
 test_summary
