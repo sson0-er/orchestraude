@@ -72,18 +72,7 @@ Exit 2 means the report is missing or malformed: treat it exactly like a failed 
 
 Unless `$T.base.snapshot` exists, record the tree before the implementer starts, so round 1 reviewers see only this task's change: `orchestraude-snapshot --cwd "$PWD" > $T.base.snapshot`. If it already exists, an earlier session started this task: add to the prompt below "An earlier session started this task. Inspect the files in its scope before changing anything."
 
-Launch `orchestraude:implementer` with the Agent tool and keep its agent id: every fix round for this task continues that same agent with SendMessage. Prompt:
-
-```
-slug is $slug, task-id is <task>.
-Implement the task described in docs/orchestraude/$slug/tasks/<task>.md.
-Read CLAUDE.md and the design files listed under References in the task file first.
-Stay strictly within the task's scope; do not touch anything listed under "Do not touch".
-Write tests for every behavior listed in the Definition of Done. Run scripts/verify.sh before finishing.
-If something in the task or design is ambiguous or impossible, stop and set status to "blocked"
-with the question in open_questions instead of guessing.
-Write the JSON report to docs/orchestraude/$slug/tasks/<task>.report.json.
-```
+Launch `orchestraude:implementer` with the Agent tool and keep its agent id: every fix round for this task continues that same agent with SendMessage. Prompt: "slug is $slug, task-id is <task>. Implement the task." The rules are in its agent file; do not repeat them.
 
 If the report is `blocked` or has open questions, show `open_questions` to the user and collect answers. Then continue the implementer (4.4) with:
 
