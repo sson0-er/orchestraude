@@ -18,7 +18,7 @@ Write one decision entry whenever you choose between alternatives (adopting an a
 
 ## Writing an evidence entry
 
-1. Create `docs/orchestraude/evidence/<yyyy-mm-dd>-<slug>.md` using the format in `${CLAUDE_PLUGIN_ROOT}/templates/evidence.md`. The slug uses `[a-z0-9-]` only.
+1. Create `docs/orchestraude/evidence/<yyyy-mm-dd>-<topic>.md` using the format in `${CLAUDE_PLUGIN_ROOT}/templates/evidence.md`. `<topic>` names the question in a few words, `[a-z0-9-]` only. It is not the feature slug, which would give every entry of one day the same file name.
 2. Body is a summary: a few lines up to a dozen. Never paste whole pages or raw command output.
 3. `fetched` is today's date. `expires` is 90 days later by default, 30 days for fast-moving sources (preview features, beta APIs).
 4. Separate what you learned from what you could not confirm.
@@ -28,7 +28,7 @@ Write one decision entry whenever you choose between alternatives (adopting an a
 ## Writing a decision entry
 
 1. Number it `<nnn>` (three digits, zero-padded) by counting existing files in `docs/orchestraude/decisions/`.
-2. Create `docs/orchestraude/decisions/<nnn>-<slug>.md` using `${CLAUDE_PLUGIN_ROOT}/templates/decision.md`.
+2. Create `docs/orchestraude/decisions/<nnn>-<topic>.md` using `${CLAUDE_PLUGIN_ROOT}/templates/decision.md` (`<topic>` as for evidence).
 3. In "Rationale", reference evidence ids. If a reason has no evidence, write "unverified" next to it.
 
 ## Citing in deliverables

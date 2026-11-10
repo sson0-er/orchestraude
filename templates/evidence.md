@@ -1,5 +1,5 @@
 ---
-id: <yyyy-mm-dd>-<slug>
+id: <yyyy-mm-dd>-<topic>
 question: <what decision this information was needed for>
 source: <URL, or command plus version>
 fetched: <yyyy-mm-dd>
