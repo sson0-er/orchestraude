@@ -38,7 +38,7 @@ From the target project root, inside a Claude Code session:
 
 Plugin skills are always namespaced with the plugin name, so the short form `/orchestrate` does not exist.
 
-The flow is: requirements (interactive), research, design, design review, plan, then per task implementation, verify gate, four parallel reviews and a bounded fix loop, then a low-findings triage, then documentation. It stops for explicit approval after requirements, after design, after the plan, and after the triage (four gates).
+The flow is: requirements (interactive), research, design, design review, plan, then per task implementation, verify gate, four parallel reviews and a bounded fix loop, then a low-findings triage, then documentation. It stops for explicit approval after requirements, after design, after the plan, and after the triage (four gates). At the design gate you can have the designer fix the low findings of the design review before you approve; left in, they tend to come back as review findings in the code.
 
 Running the same command again resumes an interrupted feature. The orchestrator does not rely on memory for this: `orchestraude-status` reads where the feature stands from the files under `docs/orchestraude/<feature-slug>/`, including the gate approvals recorded in `gates.md`.
 
