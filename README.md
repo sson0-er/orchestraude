@@ -7,7 +7,7 @@ A Claude Code plugin that makes Claude Code the orchestrator and delegates every
 - Claude Code, `git` and `jq`
 - macOS or Linux (bash 3.2 or newer)
 - The target project is a git repository: each review round diffs snapshots of the working tree
-- In the target project: `scripts/verify.sh`, one executable that runs lint, type checks, build, tests and prints a coverage summary (must be executable; `ORCHESTRAUDE_VERIFY_CMD` takes a single executable path, no arguments)
+- In the target project: `scripts/verify.sh`, one executable that runs lint, type checks, build, tests and prints a coverage summary (must be executable; `ORCHESTRAUDE_VERIFY_CMD` takes a single executable path, no arguments). A project without one, such as a new repository, gets a placeholder that always fails: the design names the real checks and the first planned task writes them
 - In the target project: `CLAUDE.md` with the project conventions; every subagent reads it
 - A session whose permission mode lets subagents edit files and run `scripts/verify.sh`: the implementer writes to the working tree directly
 
@@ -48,7 +48,7 @@ Each task is implemented by one `implementer` subagent, and every fix round cont
 
 | Path | Role |
 |---|---|
-| `bin/orchestraude-preflight` | Checks the prerequisites (jq, git repository, verify script) before any work starts |
+| `bin/orchestraude-preflight` | Checks the prerequisites (jq, git repository, a verify script that can run if there is one) before any work starts |
 | `bin/orchestraude-status` | Prints the next step of a feature from its files, to start, resume or re-orient |
 | `bin/orchestraude-verify` | Verify gate: runs `scripts/verify.sh` and keeps the log |
 | `bin/orchestraude-report-check` | Validates an implementer report against the schema and prints its status |
@@ -56,7 +56,7 @@ Each task is implemented by one `implementer` subagent, and every fix round cont
 | `bin/orchestraude-task` | Keeps a task file's bookkeeping: marks the task done, or counts a fix attempt (five before the user decides) and logs it under History |
 | `bin/orchestraude-findings-merge` | Merges review findings and applies a severity threshold |
 | `bin/orchestraude-findings-triage` | Merges leftover low findings across all tasks of a feature, deterministically, before the triage agent classifies them; items that different reviewers reported at the same place are linked, not merged, so none is dropped |
-| `bin/orchestraude-init` | Creates the `docs/orchestraude/` layout |
+| `bin/orchestraude-init` | Creates the `docs/orchestraude/` layout, and a failing placeholder `scripts/verify.sh` when the project has no verify script |
 | `bin/orchestraude-snapshot` | Snapshots the working tree as a commit object so each review round diffs only the task's change (round 1) or the fix (later rounds) |
 | `agents/` | researcher, designer, design-reviewer, planner, implementer, reviewer-{quality,security,spec,tests}, triage, doc-writer |
 | `skills/` | orchestrate (full flow), orchestrate-fable (the same flow with the design roles on Fable 5.2), define-requirements (interactive), record-evidence (recording rules), review-rules (findings shape, severity calibration and later rounds shared by the four reviewers) |

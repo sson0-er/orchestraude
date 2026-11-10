@@ -4,7 +4,8 @@
 # after context compaction without relying on memory. The first unmet
 # condition wins. Gate 1 is the Status line the requirements skill writes;
 # gates 2 to 4 and completion are lines the orchestrator appends to gates.md.
-# A second line names the design model when the feature recorded one.
+# Further lines name the design model when the feature recorded one, and say
+# when the project's verify script is still the placeholder.
 set -eu
 
 usage() { echo "Usage: orchestraude-status <feature-slug> [--cwd DIR]" >&2; exit 2; }
@@ -65,4 +66,12 @@ fi
 # a resumed or compacted orchestrator still apply it.
 if [ "$(head -n 1 "$d/design-model" 2>/dev/null)" = "fable" ]; then
   echo "design-model: fable"
+fi
+
+# orchestraude-init writes a failing placeholder when the project has no
+# verify script. It is reported on every call, not once at creation, so the
+# orchestrator can tell the user in whichever session it notices.
+if [ -z "${ORCHESTRAUDE_VERIFY_CMD:-}" ] \
+  && sed -n 2p "$cwd/scripts/verify.sh" 2>/dev/null | grep -q 'orchestraude placeholder'; then
+  echo "verify: placeholder"
 fi

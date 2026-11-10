@@ -16,6 +16,17 @@ out="$("$ROOT/bin/orchestraude-preflight" --cwd "$TMP/proj")"
 assert_exit 1 $? "non-executable verify script exits 1"
 assert_contains "$out" "scripts/verify.sh" "the missing verify script is named"
 
+# No verify script at all is not an error: orchestraude-init writes a
+# failing placeholder, which is how a new, empty repository gets started.
+mkdir -p "$TMP/blank"
+git -C "$TMP/blank" init -q
+"$ROOT/bin/orchestraude-preflight" --cwd "$TMP/blank" >/dev/null
+assert_exit 0 $? "a project without scripts/verify.sh passes"
+# A command the project named itself has to exist; no placeholder stands in for it.
+out="$(ORCHESTRAUDE_VERIFY_CMD=tools/check.sh "$ROOT/bin/orchestraude-preflight" --cwd "$TMP/blank")"
+assert_exit 1 $? "a missing ORCHESTRAUDE_VERIFY_CMD target exits 1"
+assert_contains "$out" "tools/check.sh" "the missing command is named"
+
 # The override the verify gate honors is checked instead of the default.
 ORCHESTRAUDE_VERIFY_CMD="$ROOT/tests/fixtures/verify-pass.sh" "$ROOT/bin/orchestraude-preflight" --cwd "$TMP/proj" >/dev/null
 assert_exit 0 $? "ORCHESTRAUDE_VERIFY_CMD is checked instead of scripts/verify.sh"

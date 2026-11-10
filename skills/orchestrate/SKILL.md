@@ -46,6 +46,8 @@ If `orchestraude-preflight` exits 1, a prerequisite is missing: show the user it
 - `phase-4`: the task loop below.
 - `phase-4.9`, `phase-5`: read `${CLAUDE_SKILL_DIR}/phase-4.9-to-5.md` and follow it.
 
+A further line `verify: placeholder` means the project had no verify script: `orchestraude-init` wrote one that fails until the plan's first task replaces it. Tell the user once.
+
 Whenever you are unsure where the feature stands, for example after your context was compacted, run `orchestraude-status $slug` again and re-read the phase file it points to before acting.
 
 If `CLAUDE.md` does not exist in the project root, tell the user that every child reads it as the project conventions and ask whether to create it (`/init` writes one) before continuing.

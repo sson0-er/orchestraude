@@ -7,6 +7,10 @@ D="$TMP/docs/orchestraude/feat"
 status() { "$ROOT/bin/orchestraude-status" feat --cwd "$TMP"; }
 task() { printf -- '---\nid: %s\ndepends_on: []\nstatus: %s\nattempts: 0\n---\n# Task\n' "$1" "$2" > "$D/tasks/$1.md"; }
 
+# The project in this fixture has its own verify script; the placeholder
+# case is at the end.
+mkdir -p "$TMP/scripts" && cp "$ROOT/tests/fixtures/verify-pass.sh" "$TMP/scripts/verify.sh"
+
 # Walks one feature through the whole flow; each step adds the one file or
 # line that completes the phase, and the status must move on by exactly that.
 assert_eq "next: phase-1 (requirements, gate 1)" "$(status)" "nothing exists yet"
@@ -82,5 +86,16 @@ assert_eq "next: phase-1 (requirements, gate 1)" "$("$ROOT/bin/orchestraude-stat
 assert_exit 2 $? "invalid slug exits 2"
 "$ROOT/bin/orchestraude-status" >/dev/null 2>&1
 assert_exit 2 $? "missing slug exits 2"
+
+# While scripts/verify.sh is the placeholder orchestraude-init wrote, every
+# call says so, so the orchestrator can tell the user in any session.
+P="$TMP/newproj"
+mkdir -p "$P"
+"$ROOT/bin/orchestraude-init" feat --cwd "$P" >/dev/null
+assert_eq "$(printf 'next: phase-1 (requirements, gate 1)\nverify: placeholder')" "$("$ROOT/bin/orchestraude-status" feat --cwd "$P")" "the placeholder is reported"
+echo fable > "$P/docs/orchestraude/feat/design-model"
+assert_eq "$(printf 'next: phase-1 (requirements, gate 1)\ndesign-model: fable\nverify: placeholder')" "$("$ROOT/bin/orchestraude-status" feat --cwd "$P")" "it is reported after the design model"
+cp "$ROOT/tests/fixtures/verify-pass.sh" "$P/scripts/verify.sh"
+assert_eq "$(printf 'next: phase-1 (requirements, gate 1)\ndesign-model: fable')" "$("$ROOT/bin/orchestraude-status" feat --cwd "$P")" "a replaced script is no longer reported"
 
 test_summary
