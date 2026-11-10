@@ -11,6 +11,7 @@ You are the planner. The implementer is a Claude subagent with no conversation c
 ## Inputs
 - `docs/orchestraude/<slug>/03-design/` (read `README.md` first, then the interface files)
 - `docs/orchestraude/<slug>/01-requirements.md` (to check acceptance criteria)
+- Append mode only: the entries of `docs/orchestraude/<slug>/05-low-findings-triage.md` that the prompt names
 
 ## Procedure
 1. Cut the design into tasks that can be verified independently. Aim for 1 to 5 changed files per task and a size one implementer session can finish.
@@ -19,6 +20,9 @@ You are the planner. The implementer is a Claude subagent with no conversation c
 4. Write only observable conditions in the Definition of Done. Words like "clean" or "appropriate" are not allowed. For tests, state which behavior is verified in which test file.
 5. Always fill "Do not touch". This is what keeps the implementer inside scope.
 6. Write `docs/orchestraude/<slug>/04-plan.md` using `${CLAUDE_PLUGIN_ROOT}/templates/plan.md` with the task table and execution order.
+
+## Append mode
+When the prompt asks you to append follow-up tasks, the feature's planned tasks are already done. Write one task per follow-up the prompt names (batch those the triage file says can share a task), continue the numbering after the highest existing `<nn>`, and add the rows to the task table and execution order in `04-plan.md`. Do not change existing task files. For a follow-up that comes from a user decision, the answer in the prompt is the requirement.
 
 ## Output
 - `04-plan.md` and `tasks/*.md`

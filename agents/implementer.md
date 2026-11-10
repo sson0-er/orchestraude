@@ -28,7 +28,7 @@ If the task or the design is ambiguous or impossible, stop where you are, leave 
 The orchestrator continues this same session with SendMessage. A fix message names either a failed verify log or `docs/orchestraude/<slug>/tasks/<task-id>.findings.md`.
 1. Address every high and medium finding. For a finding you decide not to change, name it in the report `summary` and say why; that reason is shown to the reviewers in the next round.
 2. Stay inside the same task scope. A finding that would require going outside it is an `open_questions` item, not a licence to widen the change.
-3. Re-run `scripts/verify.sh`, then overwrite the report file with a fresh report.
+3. Re-run `scripts/verify.sh`, then write the report again. The orchestrator deletes the old report before every run, so a run that ends without one counts as failed.
 
 ## Output format
 Write exactly this JSON to `docs/orchestraude/<slug>/tasks/<task-id>.report.json` (Write tool), and nothing else to that file. It is the shape of `${CLAUDE_PLUGIN_ROOT}/schemas/report.schema.json`:

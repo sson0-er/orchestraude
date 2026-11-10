@@ -91,6 +91,14 @@ err="$("$ROOT/bin/orchestraude-findings-merge" --out "$TMP/m13.md" "$TMP/absent.
 assert_exit 2 $? "missing findings file exits 2"
 assert_contains "$err" "findings file not found: $TMP/absent.findings.spec.json" "missing file named in error"
 
+# Findings files are named by round. The round is never part of the role label.
+cp "$TMP/1-foo.findings.quality.json" "$TMP/1-foo.round-2.findings.quality.json"
+"$ROOT/bin/orchestraude-findings-merge" --out "$TMP/m14.md" "$TMP/1-foo.round-2.findings.quality.json"
+assert_contains "$(cat "$TMP/m14.md")" "[quality] Reimplements str.strip" "round-named task findings keep their role"
+cp "$TMP/1-foo.findings.quality.json" "$TMP/03-design-review.round-2.json"
+"$ROOT/bin/orchestraude-findings-merge" --out "$TMP/m15.md" "$TMP/03-design-review.round-2.json"
+assert_contains "$(cat "$TMP/m15.md")" "[03-design-review] Reimplements str.strip" "round suffix is not part of the design-review label"
+
 # Test: temp file cleanup on error (no leak)
 before="$(ls "${TMPDIR:-/tmp}" 2>/dev/null | grep -c '^orchestraude-findings\.' || echo 0)"
 echo 'invalid json' > "$TMP/leak.json"

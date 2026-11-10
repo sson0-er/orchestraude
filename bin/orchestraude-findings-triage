@@ -21,9 +21,12 @@ done
 [ -d "$tasks_dir" ] || { echo "no such directory: $tasks_dir" >&2; exit 2; }
 
 # Tag each low finding with its task id and reviewer role, taken from
-# "<task>.findings.<role>.json". No matching files is not an error: it
-# just yields zero findings. Missing title/location/detail (e.g. a null)
-# are coerced to "" so a malformed finding cannot crash the pipeline.
+# "<task>.round-<N>.findings.<role>.json" (files written before rounds were
+# part of the name have no ".round-<N>"). Every round is read: a reviewer
+# does not repeat earlier lows in a fix round, so the last round alone would
+# lose them. No matching files is not an error: it just yields zero
+# findings. Missing title/location/detail (e.g. a null) are coerced to "" so
+# a malformed finding cannot crash the pipeline.
 tagged="$(mktemp "${TMPDIR:-/tmp}/orchestraude-triage.XXXXXX")"
 trap 'rm -f "$tagged"' EXIT
 : > "$tagged"
@@ -32,13 +35,20 @@ for f in "$tasks_dir"/*.findings.*.json; do
   jq -e '.findings | type == "array" and all(.[]; type == "object" and (.severity | IN("high","medium","low")))' "$f" >/dev/null 2>&1 || { echo "invalid findings json (findings must be an array of objects with severity high|medium|low): $f" >&2; exit 2; }
   base="$(basename "$f" .json)"
   task="${base%%.findings.*}"
+  task="${task%.round-[0-9]*}"
   role="${base##*.findings.}"
   jq -c --arg task "$task" --arg role "$role" \
     '.findings[] | select(.severity == "low") | {task: $task, role: $role, title: (.title // ""), location: (.location // ""), detail: (.detail // "")}' \
     "$f" >> "$tagged"
 done
 
-raw="$(jq -s 'length' "$tagged")"
+# Normalized title: lowercase, whitespace collapsed to one space,
+# leading/trailing space and a trailing "." or ":" removed.
+norm_def='def norm: ascii_downcase | gsub("\\s+"; " ") | sub("^ +"; "") | sub(" +$"; "") | sub("[.:]+$"; "") | sub(" +$"; "");'
+
+# A finding is one task + role + normalized title: the same low reported in
+# two rounds of a task, or at two places in it, is counted once.
+raw="$(jq -s "$norm_def"' [.[] | [.task, .role, (.title | norm)]] | unique | length' "$tagged")"
 
 mkdir -p "$(dirname "$out")" || { echo "cannot create output directory for: $out" >&2; exit 2; }
 
@@ -54,16 +64,15 @@ if [ "$raw" -eq 0 ]; then
   exit 0
 fi
 
-# Group by role + normalized title (lowercase, whitespace collapsed to one
-# space, leading/trailing space and a trailing "." or ":" removed) and
-# assign stable ids L001.. in that sorted order. group_by/sort are stable,
-# so the first element of each group is the first occurrence. An empty
-# normalized title (from a missing/null title) is still a valid key. Up
-# to 5 unique locations are kept per group; the rest are only counted.
+# Group by role + normalized title and assign stable ids L001.. in that
+# sorted order. group_by/sort are stable, so the first element of each group
+# is the first occurrence. An empty normalized title (from a missing/null
+# title) is still a valid key. The occurrence count is the number of tasks
+# the finding appears in. Up to 5 unique locations are kept per group; the
+# rest are only counted.
 groups="$(mktemp "${TMPDIR:-/tmp}/orchestraude-triage-groups.XXXXXX")"
 trap 'rm -f "$tagged" "$groups"' EXIT
-jq -s '
-  def norm: ascii_downcase | gsub("\\s+"; " ") | sub("^ +"; "") | sub(" +$"; "") | sub("[.:]+$"; "") | sub(" +$"; "");
+jq -s "$norm_def"'
   map(. + {_norm: (.title | norm)})
   | group_by([.role, ._norm])
   | to_entries
@@ -72,13 +81,14 @@ jq -s '
       | $g[0] as $first
       | ((.key + 1) | tostring) as $n
       | ([$g[].location] | map(select(. != "")) | unique) as $locs
+      | ([$g[].task] | unique) as $tasks
       | {
           id: ("L" + (if ($n | length) == 1 then "00" + $n elif ($n | length) == 2 then "0" + $n else $n end)),
           role: $first.role,
           bucket: (if ($first._norm | startswith("design ambiguity:")) then "B" else "toTriage" end),
           title: $first.title,
-          count: ($g | length),
-          tasks: ([$g[].task] | unique),
+          count: ($tasks | length),
+          tasks: $tasks,
           locations: ($locs[0:5]),
           locations_extra: (if ($locs | length) > 5 then ($locs | length) - 5 else 0 end),
           detail: (([$g[].detail] | map(select(. != "")))[0] // "")
