@@ -57,7 +57,7 @@ Each task is implemented by one `implementer` subagent, and every fix round cont
 | `bin/orchestraude-init` | Creates the `docs/orchestraude/` layout |
 | `bin/orchestraude-snapshot` | Snapshots the working tree as a commit object so each review round diffs only the task's change (round 1) or the fix (later rounds) |
 | `agents/` | researcher, designer, design-reviewer, planner, implementer, reviewer-{quality,security,spec,tests}, triage, doc-writer |
-| `skills/` | orchestrate (full flow), define-requirements (interactive), record-evidence (recording rules), review-rules (findings shape, severity calibration and later rounds shared by the four reviewers) |
+| `skills/` | orchestrate (full flow), orchestrate-fable (the same flow with the design roles on Fable 5.2), define-requirements (interactive), record-evidence (recording rules), review-rules (findings shape, severity calibration and later rounds shared by the four reviewers) |
 | `templates/` | Artifact templates |
 | `schemas/` | JSON Schemas for findings and reports |
 
@@ -78,6 +78,16 @@ Roles whose mistakes carry into every later task run on Opus; high-volume roles 
 | doc-writer | `claude-sonnet-5-5` | low |
 
 Each agent sets its model and effort in its frontmatter; `tests/test_frontmatter.sh` pins this table.
+
+### Fable variant
+
+```
+/orchestraude:orchestrate-fable <feature-slug>
+```
+
+runs the same flow with designer, design-reviewer and planner on Fable 5.2 instead of Opus 5.5, at the same effort. Every other role keeps the model in the table. Only the user can start it; Claude never picks it on its own.
+
+The choice is stored in `docs/orchestraude/<feature-slug>/design-model` and holds for the life of the feature: resuming with either command keeps the design roles on Fable. Delete that file to go back to Opus.
 
 ## Environment variables
 

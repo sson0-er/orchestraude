@@ -68,6 +68,16 @@ printf -- '---\nid: 01-a\nstatus: done\n---\n' > "$D2/tasks/01-a.md"
 printf -- '- gate 2 approved 2026-11-10\n- gate 3 approved 2026-11-10\n- gate 4 skipped 2026-11-10: no low findings\n' > "$D2/gates.md"
 assert_eq "next: phase-5 (documentation)" "$("$ROOT/bin/orchestraude-status" other --cwd "$TMP")" "skipped gate 4 counts as passed"
 
+# The Fable variant records its choice in the feature directory. The status
+# repeats it on every call, so a resumed or compacted orchestrator still
+# launches the design roles on that model.
+D3="$TMP/docs/orchestraude/fab"
+"$ROOT/bin/orchestraude-init" fab --cwd "$TMP" >/dev/null
+echo "fable" > "$D3/design-model"
+assert_eq "$(printf 'next: phase-1 (requirements, gate 1)\ndesign-model: fable')" "$("$ROOT/bin/orchestraude-status" fab --cwd "$TMP")" "a recorded design model is reported after the next step"
+echo "something-else" > "$D3/design-model"
+assert_eq "next: phase-1 (requirements, gate 1)" "$("$ROOT/bin/orchestraude-status" fab --cwd "$TMP")" "an unknown design model is not reported"
+
 "$ROOT/bin/orchestraude-status" "Bad Slug" --cwd "$TMP" >/dev/null 2>&1
 assert_exit 2 $? "invalid slug exits 2"
 "$ROOT/bin/orchestraude-status" >/dev/null 2>&1

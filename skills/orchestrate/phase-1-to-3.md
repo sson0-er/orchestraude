@@ -2,6 +2,8 @@
 
 Part of the orchestrate skill; its role and escalation rules apply. `$slug` is the feature slug given to that skill. Start at the step `orchestraude-status` named.
 
+Design model: when `orchestraude-status $slug` also prints `design-model: fable`, set the Agent tool's `model` to `fable` every time you launch `orchestraude:designer`, `orchestraude:design-reviewer` or `orchestraude:planner`. Without that line pass no `model`: each agent's definition decides.
+
 ## Phase 1: requirements → gate 1
 
 Invoke the `orchestraude:define-requirements` skill with `$slug`. Do not continue until it reports "gate 1 passed".

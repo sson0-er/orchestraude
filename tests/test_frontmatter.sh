@@ -23,6 +23,10 @@ assert_file_exists "$ROOT/skills/record-evidence/SKILL.md" "record-evidence skil
 assert_file_exists "$ROOT/skills/define-requirements/SKILL.md" "define-requirements skill"
 assert_file_exists "$ROOT/skills/orchestrate/SKILL.md" "orchestrate skill"
 assert_file_exists "$ROOT/skills/review-rules/SKILL.md" "review-rules skill"
+assert_file_exists "$ROOT/skills/orchestrate-fable/SKILL.md" "orchestrate-fable skill"
+# The Fable variant changes which models a run uses, so only the user starts
+# it: the model must never pick it on its own.
+assert_eq "true" "$(field "$ROOT/skills/orchestrate-fable/SKILL.md" disable-model-invocation)" "orchestrate-fable is user-invoked only"
 # The severity calibration lives only in review-rules; a reviewer that does not
 # preload it would review without any calibration.
 for r in quality security spec tests; do

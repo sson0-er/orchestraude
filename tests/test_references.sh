@@ -58,6 +58,14 @@ for skill in "$ROOT"/skills/*/SKILL.md; do
   done
 done
 
+# Every skill file that launches a design role must carry the design-model
+# rule; without it the Fable variant would fall back to the default model there.
+design_files="$(grep -rlE 'orchestraude:(designer|design-reviewer|planner)' "$ROOT/skills")"
+[ -n "$design_files" ] && pass || fail "at least one skill file launches a design role"
+for f in $design_files; do
+  grep -q 'design-model: fable' "$f" && pass || fail "${f#$ROOT/} launches a design role but lacks the design-model rule"
+done
+
 # After context compaction Claude Code re-attaches only the first 5,000 tokens
 # of an invoked skill. This file measured 2.7 bytes per token (input-token
 # difference of `claude -p` with and without it, 2026-11-10), so 11,000 bytes

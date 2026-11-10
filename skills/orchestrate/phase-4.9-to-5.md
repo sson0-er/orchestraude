@@ -2,6 +2,8 @@
 
 Part of the orchestrate skill; its role and escalation rules apply. `$slug` is the feature slug given to that skill.
 
+Design model: when `orchestraude-status $slug` also prints `design-model: fable`, set the Agent tool's `model` to `fable` every time you launch `orchestraude:designer` or `orchestraude:planner`. Without that line pass no `model`: each agent's definition decides.
+
 ## Phase 4.9: low-findings triage → gate 4
 
 Runs once, after every task is done and before documentation.
