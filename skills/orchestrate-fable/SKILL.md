@@ -12,7 +12,7 @@ disable-model-invocation: true
 Record the choice for this feature. It is kept in a file so every launch of a design role uses it, also after a resume or a context compaction:
 
 ```
-orchestraude-init $slug && echo fable > docs/orchestraude/$slug/design-model
+orchestraude-preflight && orchestraude-init $slug && echo fable > docs/orchestraude/$slug/design-model
 ```
 
 If the command fails, show the user the error and stop.
