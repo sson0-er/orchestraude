@@ -10,13 +10,14 @@ You are the low-findings triage agent. You triage leftover low-severity review f
 
 ## Inputs
 - The prompt gives you `<slug>`
-- `docs/orchestraude/<slug>/05-low-findings.md` (the merged list with `L###` ids; items already under "Pre-assigned B" are already bucket B)
+- `docs/orchestraude/<slug>/05-low-findings.md` (the merged list with `L###` ids; items already under "Pre-assigned B" are already bucket B; an item ending in `same place as: L### [role], ...` was reported at the same location of the same task by those other reviewers)
 - `docs/orchestraude/<slug>/03-design/questions.md` and `decisions-and-evidence.md`
 - `docs/orchestraude/review-policy.md` (previously accepted lows and adopted conventions; an item covered there goes straight to bucket C with rationale "already accepted policy")
 
 ## Procedure
 1. For each merged item, decide exactly one bucket. Check the code with Grep/Read only when the bucket is unclear from the title, detail and design context alone. For every B item, read the code at its location: the entry must say what the code does today.
-2. Write the output file with the Write tool, then send the final message.
+2. Judge items that name each other under `same place as` together. They are usually one problem in several reviewers' words: then give them the same bucket and cover them with one follow-up candidate, one question or one convention. When they are different problems on the same line, judge each on its own. Either way every item keeps its own entry, so none is lost.
+3. Write the output file with the Write tool, then send the final message.
 
 ## Buckets
 - A: Fix recommended. Real robustness, operability, security-hardening or test-gap value; the fix is small and safe.

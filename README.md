@@ -54,7 +54,7 @@ Each task is implemented by one `implementer` subagent, and every fix round cont
 | `bin/orchestraude-report-check` | Validates an implementer report against the schema and prints its status |
 | `bin/orchestraude-report-clear` | Deletes a task's old implementer report before the implementer runs again, so a run that writes none is caught; a command instead of `rm` so sessions that ask before every `rm` are not interrupted |
 | `bin/orchestraude-findings-merge` | Merges review findings and applies a severity threshold |
-| `bin/orchestraude-findings-triage` | Merges leftover low findings across all tasks of a feature, deterministically, before the triage agent classifies them |
+| `bin/orchestraude-findings-triage` | Merges leftover low findings across all tasks of a feature, deterministically, before the triage agent classifies them; items that different reviewers reported at the same place are linked, not merged, so none is dropped |
 | `bin/orchestraude-init` | Creates the `docs/orchestraude/` layout |
 | `bin/orchestraude-snapshot` | Snapshots the working tree as a commit object so each review round diffs only the task's change (round 1) or the fix (later rounds) |
 | `agents/` | researcher, designer, design-reviewer, planner, implementer, reviewer-{quality,security,spec,tests}, triage, doc-writer |

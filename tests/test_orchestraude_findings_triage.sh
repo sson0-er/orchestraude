@@ -171,4 +171,45 @@ assert_contains "$rounds_out" "Only in round one (1 occurrences; tasks: 01-a)" "
 assert_contains "$rounds_out" "Repeated low (1 occurrences; tasks: 01-a)" "repeated low is one occurrence"
 assert_contains "$rounds_out" "a.go:2; a.go:3" "locations from both rounds are listed"
 
+# Reviewers of different roles often report one problem each in their own
+# words. Such items are linked, never merged or dropped: every one keeps its
+# id and its line, so nothing a reviewer raised can disappear here.
+mkdir -p "$TMP/same"
+cat > "$TMP/same/01-a.round-1.findings.quality.json" <<'EOF'
+{"summary":"q","findings":[
+ {"severity":"low","title":"Raw characters","location":"src/a.go:10","detail":"d","evidence":""},
+ {"severity":"low","title":"Second quality point","location":"src/a.go:10","detail":"d","evidence":""},
+ {"severity":"low","title":"No location given","location":"","detail":"d","evidence":""}
+]}
+EOF
+cat > "$TMP/same/01-a.round-1.findings.security.json" <<'EOF'
+{"summary":"s","findings":[
+ {"severity":"low","title":"Invisible characters","location":"src/a.go:10","detail":"d","evidence":""},
+ {"severity":"low","title":"Also no location","location":"","detail":"d","evidence":""}
+]}
+EOF
+cat > "$TMP/same/01-a.round-1.findings.tests.json" <<'EOF'
+{"summary":"t","findings":[
+ {"severity":"low","title":"Elsewhere in the file","location":"src/a.go:99","detail":"d","evidence":""}
+]}
+EOF
+cat > "$TMP/same/02-b.round-1.findings.spec.json" <<'EOF'
+{"summary":"s","findings":[
+ {"severity":"low","title":"Other task same string","location":"src/a.go:10","detail":"d","evidence":""}
+]}
+EOF
+line_s="$("$ROOT/bin/orchestraude-findings-triage" --tasks-dir "$TMP/same" --out "$TMP/same-out.md")"
+assert_eq "raw: 7 merged: 7" "$line_s" "linking same-place items removes none of them"
+assert_eq "7" "$(grep -c '^- L' "$TMP/same-out.md")" "every item still has its own line"
+item() { grep -- "] $1 (" "$TMP/same-out.md"; }
+assert_contains "$(item 'Raw characters')" "same place as: L005 [security]" "an item names the other role's item at its location"
+assert_contains "$(item 'Second quality point')" "same place as: L005 [security]" "each item at the location is linked"
+assert_contains "$(item 'Invisible characters')" "same place as: L002 [quality], L003 [quality]" "the link goes both ways and lists every item"
+no_link() { case "$(item "$1")" in *"same place as"*) fail "$2" ;; *) pass ;; esac; }
+no_link 'Elsewhere in the file' "another line of the same file is not the same place"
+no_link 'Other task same string' "the same location string in another task is not the same place"
+no_link 'No location given' "an empty location never links"
+no_link 'Also no location' "an empty location never links (other role)"
+case "$(item 'Raw characters')" in *"L003"*) fail "items of one role are not linked to each other" ;; *) pass ;; esac
+
 test_summary
