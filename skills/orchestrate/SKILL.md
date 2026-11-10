@@ -23,13 +23,14 @@ Do not read the children's deliverables. You read only: a child's final message 
 
 The working directory is the target project root (`$PWD`); all paths below are relative to it. The plugin's `bin/` is on PATH, so `orchestraude-*` commands run as is. Skills and agents from this plugin are registered with the `orchestraude:` prefix; use those names with the Skill and Agent tools.
 
-Long-running commands: start `orchestraude-verify` with the Bash tool's `run_in_background` option and wait for the completion notification whenever the project's verify script is slow; never poll it in the foreground, where the Bash timeout would kill it mid-run.
+Run `orchestraude-verify` in the foreground. Only when the project's verify script is known to outlast the Bash timeout, start it with `run_in_background` and wait for the completion notification instead of polling.
 
 ## Escalation rules
 
 - When a child reports "unverified", an open question, or `blocked`, ask the user instead of guessing.
 - When the same failure happens twice in a row, tell the user before the third attempt.
 - Never skip a gate. Unless the user explicitly approves, treat the gate as not passed.
+- The user may see only the question you ask, not earlier output. Put what they decide on into the question itself: counts, finding titles, the task list.
 - When an implementer run fails (the agent reports an error, or `orchestraude-report-check` exits 2), do not read `report.json`. Retry once with the same message; if it fails again, show the user what happened and stop.
 
 ## Phase 0: preflight, initialize, find where to start
