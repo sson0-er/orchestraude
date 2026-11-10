@@ -1,5 +1,4 @@
 {
   "name": "orchestraude",
-  "description": "Orchestrator plugin: Claude Code drives a feature end to end through role-specific Opus 5.5 and Sonnet 5.5 subagents for research, design, design review, planning, implementation and review, with file-based handoff plus evidence and decision records.",
-  "version": "0.1.0"
+  "description": "Orchestrator plugin: Claude Code drives a feature end to end through role-specific Opus 5.5 and Sonnet 5.5 subagents for research, design, design review, planning, implementation and review, with file-based handoff plus evidence and decision records."
 }
